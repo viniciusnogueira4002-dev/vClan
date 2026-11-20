@@ -1,0 +1,67 @@
+﻿# ========================================================= #
+#                 VCLANS - CARGOS E PERMISSÕES        #
+#              Rede Eclypse | Minecraft 1.20.1 Forge         #
+# ========================================================= #
+
+ranks:
+  LEADER:
+    priority: 4
+    display-name: "&#FF5555Líder"
+    prefix: "&8[&#FF5555Líder&8] "
+    can-be-kicked: false
+    can-be-demoted: false
+    permissions:
+      - INVITE
+      - KICK
+      - PROMOTE
+      - DEMOTE
+      - EDIT_INFO
+      - TAG_COLOR
+      - ALLIANCE
+      - DUEL
+      - WAR
+      - BANK_DEPOSIT
+      - BANK_WITHDRAW
+      - SETTINGS
+      - DISBAND
+
+  CO_LEADER:
+    priority: 3
+    display-name: "&#FFAA00Sub-Líder"
+    prefix: "&8[&#FFAA00Sub-Líder&8] "
+    can-be-kicked: true
+    can-be-demoted: true
+    permissions:
+      - INVITE
+      - KICK
+      - PROMOTE
+      - DEMOTE
+      - EDIT_INFO
+      - TAG_COLOR
+      - ALLIANCE
+      - DUEL
+      - WAR
+      - BANK_DEPOSIT
+      - BANK_WITHDRAW
+
+  CAPTAIN:
+    priority: 2
+    display-name: "&#55FFFFCapitão"
+    prefix: "&8[&#55FFFFCapitão&8] "
+    can-be-kicked: true
+    can-be-demoted: true
+    permissions:
+      - INVITE
+      - KICK
+      - DUEL
+      - BANK_DEPOSIT
+
+  MEMBER:
+    priority: 1
+    display-name: "&#AAAAAAMembro"
+    prefix: "&8[&#AAAAAAMembro&8] "
+    can-be-kicked: true
+    can-be-demoted: false
+    permissions:
+      - BANK_DEPOSIT
+

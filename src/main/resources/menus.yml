@@ -1,0 +1,27 @@
+﻿# ========================================================= #
+#                 VCLANS - MENUS (GUI)                      #
+#              Rede Eclypse | Minecraft 1.20.1 Forge         #
+# ========================================================= #
+
+titles:
+  main-no-clan: "&#FF5555&lv&#FFAA00&lClans &8» &7Menu Principal"
+  main-has-clan: "&#FF5555&lCLÃ &8» &e{clan_name}"
+  clan-info: "&#FFAA00&lINFORMAÇÕES &8» &e{clan_name}"
+  members-list: "&#55FFFF&lMEMBROS DO CLÃ &8» &7Página {page}"
+  member-manage: "&#FFAA00&lGERENCIAR &8» &e{target_name}"
+  invite-player: "&#55FF55&lCONVIDAR GUERREIRO &8» &7Página {page}"
+  pending-invites: "&#FFAA00&lCONVITES RECEBIDOS &8» &7Página {page}"
+  clan-settings: "&#55FFFF&lCONFIGURAÇÕES DO CLÃ"
+  tag-colors: "&#FFAA00&lPALETA DE CORES DA TAG"
+  alliances: "&#55FF55&lALIANÇAS &8» &e{clan_name}"
+  duels-menu: "&#FF5555&lDUELO DE CLÃS &8» &7Escolha um Oponente"
+  ranking-menu: "&#FFAA00&lTOP CLÃS DA REDE ECLYPSE"
+  admin-panel: "&#FF5555&lPAINEL ADMINISTRATIVO &8» &7Clãs"
+  confirm-dialog: "&#FF5555&lCONFIRMAÇÃO NECESSÁRIA"
+
+sounds:
+  click: "UI_BUTTON_CLICK"
+  success: "ENTITY_PLAYER_LEVELUP"
+  error: "ENTITY_VILLAGER_NO"
+  open: "BLOCK_CHEST_OPEN"
+

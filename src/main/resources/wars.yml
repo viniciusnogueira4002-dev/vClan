@@ -1,0 +1,20 @@
+﻿# ========================================================= #
+#                 VCLANS - GUERRAS DE CLÃS            #
+#              Rede Eclypse | Minecraft 1.20.1 Forge         #
+# ========================================================= #
+
+settings:
+  enabled: true
+  min-members-to-declare: 3
+  declaration-timeout-hours: 24
+  target-kills-to-win: 30
+  max-duration-hours: 48
+  rewards:
+    winner-points: 100
+    loser-points-lost: 50
+    broadcast-surrender: true
+    broadcast-victory: true
+
+wars:
+  # Dados das guerras ativas
+

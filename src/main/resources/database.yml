@@ -1,0 +1,23 @@
+﻿# ========================================================= #
+#                 VCLANS - BANCO DE DADOS             #
+#              Rede Eclypse | Minecraft 1.20.1 Forge         #
+# ========================================================= #
+
+# Tipo de armazenamento: SQLITE ou MYSQL
+type: "SQLITE"
+
+mysql:
+  host: "localhost"
+  port: 3306
+  database: "eclypse_clans"
+  username: "root"
+  password: ""
+  ssl: false
+  pool:
+    maximum-pool-size: 10
+    minimum-idle: 2
+    connection-timeout: 30000
+
+sqlite:
+  file: "clans.db"
+

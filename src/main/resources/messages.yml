@@ -1,0 +1,103 @@
+# ========================================================= #
+#                 VCLANS - MENSAGENS                        #
+#              Rede Eclypse | Minecraft 1.20.1 Forge         #
+# ========================================================= #
+
+prefix: "&#FF5555&lv&#FFAA00&lClans &8» &r"
+
+general:
+  no-permission: "&#FF5555Você não tem permissão para executar esta ação."
+  only-players: "&#FF5555Este comando só pode ser executado por jogadores."
+  player-not-found: "&#FF5555Jogador não encontrado ou offline."
+  clan-not-found: "&#FF5555Clã não encontrado com este identificador ou tag."
+  target-not-in-clan: "&#FF5555Este jogador não pertence a nenhum clã."
+  already-in-clan: "&#FF5555Você já faz parte de um clã! Saia dele antes de criar ou entrar em outro."
+  not-in-clan: "&#FF5555Você não pertence a nenhum clã. Use &e/clan &7para criar um ou ver convites."
+  cooldown-active: "&#FF5555Aguarde &e{time} &7para realizar esta ação novamente."
+  action-cancelled: "&#777777Ação cancelada com sucesso."
+  config-reloaded: "&#55FF55Configurações e dados recarregados com sucesso!"
+
+clan:
+  created: "&#55FF55Clã &#FFAA00{name} &8[{color}{tag}&8] &#55FF55criado com sucesso!"
+  created-broadcast: "&#FFAA00O guerreiro &e{player} &#FFAA00fundou o clã &#FF5555{name} &8[{color}{tag}&8]&#FFAA00!"
+  disbanded: "&#FF5555O clã &e{name} &8[{color}{tag}&8] &#FF5555foi desfeito pelo líder."
+  disband-confirm: "&#FF5555Tem certeza que deseja desfazer seu clã? Esta ação é irreversível!"
+  member-joined: "&#55FF55O jogador &e{player} &#55FF55entrou para o clã!"
+  member-joined-broadcast: "&#FFAA00O guerreiro &e{player} &#FFAA00foi recrutado pelo clã &#FF5555{name} &8[{color}{tag}&8]&#FFAA00!"
+  member-left: "&#FF5555O jogador &e{player} &#FF5555saiu do clã."
+  member-kicked: "&#FF5555O jogador &e{player} &#FF5555foi expulso do clã por &e{actor}&c."
+  member-kicked-broadcast: "&#FF5555O jogador &e{player} &#FF5555foi expulso do clã &#FFAA00{name} &8[{color}{tag}&8] &#FF5555por &e{actor}&c!"
+  kicked-notify: "&#FF5555Você foi expulso do clã &e{name} &8[{color}{tag}&8] &#FF5555por &e{actor}&c."
+  role-promoted: "&#55FF55O membro &e{player} &#55FF55foi promovido a &e{role}&55FF55!"
+  role-demoted: "&#FFAA00O membro &e{player} &#FFAA00foi rebaixado a &e{role}&FFAA00."
+  leader-transferred: "&#FFAA00A liderança do clã foi transferida para &e{player}&FFAA00!"
+  tag-changed: "&#55FF55A tag do clã foi alterada para &8[{color}{tag}&8]&#55FF55!"
+  tag-color-changed: "&#55FF55A cor da tag do clã foi alterada com sucesso!"
+  description-changed: "&#55FF55A descrição do clã foi atualizada para: &f{description}"
+  limit-reached: "&#FF5555O clã já atingiu a capacidade máxima de membros ({max})."
+  cannot-kick-higher: "&#FF5555Você não pode expulsar ou rebaixar um membro de cargo igual ou superior ao seu."
+  cannot-kick-leader: "&#FF5555O líder do clã não pode ser expulso!"
+  cannot-promote-higher: "&#FF5555Você não pode promover alguém a um cargo igual ou superior ao seu."
+  not-enough-money: "&#FF5555Você precisa de &e{cost} moedas &#FF5555para criar um clã."
+  friendly-fire-blocked: "&#FF5555Você não pode ferir um membro ou aliado do seu clã!"
+  friendly-fire-enabled: "&#FF5555Fogo amigo do clã foi ATIVADO! Membros agora podem se ferir em combate."
+  friendly-fire-disabled: "&#55FF55Fogo amigo do clã foi DESATIVADO! Membros agora estão totalmente protegidos."
+  friendly-fire-broadcast-enabled: "&#FF5555[Aviso de Clã] O fogo amigo foi ATIVADO por &e{player}&FF5555! Cuidado em combate."
+  friendly-fire-broadcast-disabled: "&#55FF55[Aviso de Clã] O fogo amigo foi DESATIVADO por &e{player}&55FF55! Membros agora estão protegidos."
+  chat-usage: "&#FF5555Uso: &e/. <mensagem>"
+  chat-no-members-online: "&#FF5555[Clã] Ninguém do clã online no momento."
+
+invite:
+  sent: "&#55FF55Convite enviado para &e{player}&55FF55! Ele tem &e{time}s &#55FF55para responder."
+  received: "&#FFAA00Você recebeu um convite para entrar no clã &e{name} &8[{color}{tag}&8]&#FFAA00!"
+  received-action: "&#777777Clique em &a[ACEITAR] &#777777ou &c[RECUSAR] &#777777ou digite &e/clan aceitar {tag}"
+  already-invited: "&#FF5555Este jogador já possui um convite pendente para o seu clã."
+  target-has-clan: "&#FF5555O jogador &e{player} &#FF5555já faz parte de um clã."
+  target-disabled-invites: "&#FF5555O jogador &e{player} &#FF5555está com os convites de clã desativados."
+  accepted: "&#55FF55Você aceitou o convite e agora faz parte do clã &e{name}&55FF55!"
+  declined: "&#FF5555Você recusou o convite do clã &e{name}&FF5555."
+  expired: "&#777777O convite do clã &e{name} &#777777expirou."
+  no-pending: "&#FF5555Você não possui nenhum convite pendente deste clã."
+  invites-toggled-on: "&#55FF55Você agora receberá convites de clãs normalmente."
+  invites-toggled-off: "&#FFAA00Você agora não receberá mais convites de clãs."
+
+duel:
+  challenged: "&#FFAA00O seu clã desafiou o clã &e{target} &#FFAA00para um duelo &6{size}v{size} &#FFAA00na arena &e{arena}&FFAA00!"
+  received: "&#FF5555Seu clã recebeu um desafio de DUELO &6{size}v{size} &#FF5555do clã &e{challenger} &8[{color}{tag}&8]&#FF5555!"
+  received-action: "&#777777Digite &e/clan duelo aceitar {tag} &#777777para aceitar a batalha."
+  accepted: "&#55FF55O duelo contra &e{opponent} &#55FF55foi aceito! Preparando arena..."
+  declined: "&#FF5555O duelo contra &e{opponent} &#FF5555foi recusado."
+  expired: "&#777777O desafio de duelo contra &e{opponent} &#777777expirou."
+  already-dueling: "&#FF5555Um dos clãs já está participando de um duelo ativo."
+  arena-busy: "&#FF5555A arena selecionada está em uso no momento. Aguarde o término da partida."
+  no-arenas: "&#FF5555Nenhuma arena de duelo está disponível no momento."
+  countdown: "&#FFAA00O duelo começará em &#FF5555{seconds} &#FFAA00segundos!"
+  started: "&#55FF55O DUELO COMEÇOU! LUTEM PELA GLÓRIA DO SEU CLÃ!"
+  won: "&#55FF55O clã &e{winner} &8[{color}{tag}&8] &#55FF55venceu o duelo &6{size}v{size} &#55FF55contra &c{loser}&55FF55!"
+  player-died: "&#FF5555{player} foi abatido no duelo!"
+  player-quit: "&#FF5555{player} desconectou durante o duelo e foi desqualificado!"
+  cancelled: "&#FF5555O duelo foi encerrado sem vencedores."
+
+war:
+  declared: "&#FF5555O clã &e{clan} &#FF5555DECLAROU GUERRA contra o clã &e{target}&FF5555!"
+  accepted: "&#55FF55A guerra entre &e{clanA} &#55FF55e &e{clanB} &#55FF55foi iniciada!"
+  surrendered: "&#FFAA00O clã &e{loser} &#FFAA00se rendeu! O clã &e{winner} &#FFAA00saiu vitorioso da guerra!"
+  kill: "&#FFAA00[GUERRA] &e{killer} &#777777abateu &c{victim}&777777! (+1 ponto de guerra)"
+  ended: "&#55FF55A GUERRA TERMINOU! O clã &e{winner} &#55FF55é o grande campeão com &e{kills} &#55FF55abates!"
+
+alliance:
+  requested: "&#55FF55Solicitação de aliança enviada para o clã &e{target}&55FF55."
+  received: "&#55FF55O clã &e{clan} &8[{color}{tag}&8] &#55FF55deseja formar uma aliança com seu clã!"
+  formed: "&#55FF55Os clãs &e{clanA} &#55FF55e &e{clanB} &#55FF55agora são aliados!"
+  broken: "&#FF5555A aliança entre &e{clanA} &#FF5555e &e{clanB} &#FF5555foi desfeita."
+  max-allies: "&#FF5555Seu clã já atingiu o limite máximo de alianças permitidas."
+
+admin:
+  points-set: "&#55FF55Pontos do clã &e{clan} &#55FF55definidos para &e{points}&55FF55."
+  clan-deleted: "&#FF5555O clã &e{clan} &#FF5555foi deletado pela administração."
+  leader-set: "&#55FF55O jogador &e{player} &#55FF55foi definido como líder do clã &e{clan}&55FF55."
+  arena-created: "&#55FF55Arena &e{name} &#55FF55criada com sucesso!"
+  arena-spawn-set: "&#55FF55Ponto de spawn &e{spawn} &#55FF55da arena &e{arena} &#55FF55definido."
+  top-set: "&#55FF55O painel visual de Top Clãs em HD foi posicionado nesta localização!"
+  top-removed: "&#FF5555O painel visual de Top Clãs foi removido."
+

@@ -1,0 +1,80 @@
+name: vClans
+version: '${version}'
+main: org.vine.vclans.VClans
+api-version: '1.20'
+author: Rede Eclypse
+description: Sistema Completo e Profissional de Clãs para a Rede Eclypse (1.20.1 Forge Híbrido)
+
+softdepend:
+  - PlaceholderAPI
+  - LuckPerms
+  - Vault
+
+commands:
+  clan:
+    description: Comando principal do sistema de clãs vClans.
+    aliases: [clans, cla, clas, vclan]
+    usage: /clan [subcomando]
+    permission: vclans.use
+  clanchat:
+    description: Chat exclusivo entre membros do clã.
+    aliases: [c, cc]
+    usage: /. <mensagem>
+    permission: vclans.use
+  evento:
+    description: Comando do Evento Global de Clãs da Rede Eclypse.
+    aliases: [eventos]
+    usage: /evento clans
+    permission: vclans.use
+
+permissions:
+  vclans.use:
+    description: Permissão básica para usar o sistema de clãs.
+    default: true
+    children:
+      eclypseclans.use: true
+  vclans.create:
+    description: Permissão para criar um novo clã.
+    default: true
+    children:
+      eclypseclans.create: true
+  vclans.invite:
+    description: Permissão para convidar novos membros para o clã.
+    default: true
+    children:
+      eclypseclans.invite: true
+  vclans.manage:
+    description: Permissão para gerenciar membros, cargos e configurações do clã.
+    default: true
+    children:
+      eclypseclans.manage: true
+  vclans.duel:
+    description: Permissão para desafiar e aceitar duelos de clãs.
+    default: true
+    children:
+      eclypseclans.duel: true
+  vclans.war:
+    description: Permissão para declarar e aceitar guerras de clãs.
+    default: true
+    children:
+      eclypseclans.war: true
+  vclans.admin:
+    description: Permissão administrativa para gerenciar todos os clãs e arenas.
+    default: op
+    children:
+      eclypseclans.admin: true
+  vclans.reload:
+    description: Permissão para recarregar as configurações do plugin.
+    default: op
+    children:
+      eclypseclans.reload: true
+  vclans.bypass.friendlyfire:
+    description: Permissão especial para ignorar a proteção de fogo amigo (administradores).
+    default: false
+    children:
+      eclypseclans.bypass.friendlyfire: true
+  vclans.chat.color:
+    description: Permissão para usar códigos de cores no chat de clã.
+    default: op
+    children:
+      eclypseclans.chat.color: true

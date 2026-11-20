@@ -1,0 +1,34 @@
+# ========================================================= #
+#                 VCLANS - TOP RANKING EM HD                #
+#              Rede Eclypse | Minecraft 1.20.1 Forge         #
+# ========================================================= #
+
+display:
+  enabled: true
+  max-entries: 3
+  header:
+    - "&#FFAA00&l⚔ REDE ECLYPSE ⚔"
+    - "&#FF5555&lTOP CLÃS DO SERVIDOR"
+    - "&7Atualizado a cada 5 minutos"
+    - ""
+  format-top-1:
+    - " &e🥇 &6&l#1 &f{name} &8[{color}{tag}&8]"
+  format-top-2:
+    - " &f🥈 &f&l#2 &f{name} &8[{color}{tag}&8]"
+  format-top-3:
+    - " &6🥉 &c&l#3 &f{name} &8[{color}{tag}&8]"
+  format-others:
+    - " &8#{rank} &7{name} &8[{color}{tag}&8]"
+  footer:
+    - ""
+    - "&eUse &f/clan top &epara o ranking completo!"
+
+location:
+  world: ""
+  x: 0.0
+  y: 0.0
+  z: 0.0
+  yaw: 0.0
+  pitch: 0.0
+  entity-uuid: ""
+

@@ -1,0 +1,25 @@
+﻿# ========================================================= #
+#                 VCLANS - SISTEMA DE DUELOS          #
+#              Rede Eclypse | Minecraft 1.20.1 Forge         #
+# ========================================================= #
+
+settings:
+  enabled: true
+  challenge-timeout-seconds: 60
+  countdown-seconds: 5
+  max-match-duration-seconds: 300 # 5 minutos
+  allow-potions: true
+  allow-dragonminez-skills: true
+  rewards:
+    winner-points: 25
+    loser-points-lost: 10
+    broadcast-result: true
+
+arenas:
+  # Arenas serão configuradas automaticamente por comandos como:
+  # /clan admin arena criar <nome>
+  # /clan admin arena setspawn1 <nome>
+  # /clan admin arena setspawn2 <nome>
+  # /clan admin arena setspectator <nome>
+  # /clan admin arena setexit <nome>
+

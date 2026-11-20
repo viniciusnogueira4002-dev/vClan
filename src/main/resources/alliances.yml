@@ -1,0 +1,11 @@
+﻿# ========================================================= #
+#                 VCLANS - ALIANÇAS                   #
+#              Rede Eclypse | Minecraft 1.20.1 Forge         #
+# ========================================================= #
+
+settings:
+  max-alliances-per-clan: 3
+  friendly-fire-disabled: true # Membros de clãs aliados não se machucam
+  allow-allied-chat: false
+  request-timeout-seconds: 60
+

@@ -1,0 +1,75 @@
+# ========================================================= #
+#            VCLANS - EVENTO GLOBAL DE CLÃS                 #
+#              Rede Eclypse | Minecraft 1.20.1 Forge         #
+# ========================================================= #
+
+settings:
+  enabled: true
+  # Se 'true', apenas jogadores pertencentes a um clã podem entrar
+  require-clan: true
+  # Comandos que são bloqueados dentro da arena do evento para evitar fugas
+  blocked-commands:
+    - "/home"
+    - "/sethome"
+    - "/spawn"
+    - "/tp"
+    - "/tpa"
+    - "/tpaccept"
+    - "/tpyes"
+    - "/warp"
+    - "/back"
+    - "/call"
+    - "/suicide"
+
+# Posição onde TODOS os jogadores que entram com /evento clans nascem
+spawn-location:
+  world: ""
+  x: 0.0
+  y: 0.0
+  z: 0.0
+  yaw: 0.0
+  pitch: 0.0
+
+# Posição de saída para onde vão os jogadores eliminados ou quando o evento acabar
+exit-location:
+  world: ""
+  x: 0.0
+  y: 0.0
+  z: 0.0
+  yaw: 0.0
+  pitch: 0.0
+
+# Mensagens e Avisos do Evento Global
+messages:
+  prefix: "&#FFAA00&l[EVENTO CLÃS] &r"
+  announcement:
+    - ""
+    - "&#FFAA00&l⚔ ========================================== ⚔"
+    - "&#FF5555&l       ⚔ EVENTO GLOBAL DE CLÃS ⚔"
+    - "&#FFAA00&l     UM BOSS INVADIU A CIDADE / TERRA!"
+    - ""
+    - "&e Venha com seu clã dominar a cidade e conquistar"
+    - "&e recompensas lendárias da Rede Eclypse!"
+    - ""
+    - "&#FF5555&l ATENÇÃO: &cMorreu lá dentro, &4&lNÃO PODERÁ MAIS VOLTAR&c!"
+    - ""
+    - "&a Digite &e&l/evento clans &apara entrar na batalha agora!"
+    - "&#FFAA00&l⚔ ========================================== ⚔"
+    - ""
+  title:
+    title: "&#FF5555&lBOSS INVADIU A TERRA!"
+    subtitle: "&eUse &a/evento clans &epara entrar na batalha!"
+    fadeIn: 10
+    stay: 70
+    fadeOut: 20
+  entered: "&aVocê entrou no &6Evento Global de Clãs&a! Lute junto com seu clã! &c&lCUIDADO: &cSe morrer, você NÃO poderá voltar!"
+  already-inside: "&cVocê já está dentro da arena do evento!"
+  eliminated: "&#FF5555&l[EVENTO] &cVocê foi abatido e eliminado da batalha! Você não poderá mais retornar nesta edição."
+  eliminated-broadcast: "&c[Evento] O guerreiro &e{player} &8[{clan}&8] &cfoi eliminado da batalha!"
+  cannot-return: "&#FF5555&l[EVENTO] &cVocê já morreu neste evento e foi eliminado! Não é possível retornar."
+  event-not-active: "&cO Evento Global de Clãs não está ativo no momento."
+  must-have-clan: "&cVocê precisa pertencer a um clã para participar do Evento Global!"
+  spawn-not-set: "&cO ponto de spawn do evento ainda não foi configurado por um administrador (/clan admin evento setspawn)!"
+  event-ended: "&#FF5555&l[EVENTO] &cO Evento Global de Clãs foi encerrado pela administração!"
+  blocked-command-msg: "&cVocê não pode utilizar este comando enquanto estiver dentro do evento!"
+  left-event: "&eVocê saiu do evento e foi desclassificado da edição atual."

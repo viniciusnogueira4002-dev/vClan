@@ -1,0 +1,112 @@
+# ========================================================= #
+#                 VCLANS - CONFIGURAÇÃO GERAL               #
+#              Rede Eclypse | Minecraft 1.20.1 Forge         #
+# ========================================================= #
+
+# Configurações do Clã
+clan:
+  name:
+    min-length: 3
+    max-length: 16
+    regex: '^[a-zA-Z0-9_]+$'
+    disallowed:
+      - 'admin'
+      - 'mod'
+      - 'dono'
+      - 'diretor'
+      - 'console'
+      - 'staff'
+  tag:
+    min-length: 2
+    max-length: 4
+    regex: '^[a-zA-Z0-9]+$'
+    default-color: '&#FF5555'
+    disallowed:
+      - 'ADM'
+      - 'MOD'
+      - 'DON'
+      - 'DIR'
+  description:
+    max-length: 64
+    default: 'Um novo clã lendário da Rede Eclypse.'
+  max-members: 20
+  creation-cost: 0.0 # Custo em moedas (Vault). Se 0, a criação é gratuita.
+  leave-cooldown-seconds: 3600 # 1 hora de cooldown para entrar em outro clã após sair
+  invite-timeout-seconds: 60 # Duração de validade de um convite enviado
+
+# Proteção Total Contra Fogo Amigo
+friendly-fire:
+  # Se 'true', membros do mesmo clã NUNCA sofrerão dano uns dos outros em nenhum mundo (quando fogo amigo estiver desligado).
+  block-same-clan: true
+  # Se 'true', membros de clãs aliados também não causarão dano entre si.
+  block-allies: true
+  # Se 'true', líderes e sub-líderes podem ativar/desativar o fogo amigo de seus clãs pelo GUI (/clan) ou por comando
+  allow-clan-toggle: true
+  # Notificar o atacante com som e mensagem ao tentar golpear um aliado protegido
+  notify-attacker: true
+  # Mundos onde o fogo amigo é ativado mesmo entre aliados (deixe vazio para proteger em TODOS os mundos)
+  whitelist-worlds: []
+
+# Formatação de Chat
+chat:
+  enabled: true
+  # Se você usa um plugin de chat (LPC, EssentialsChat, ChatControl, etc.), mantenha 'override-chat-format: false'
+  # e coloque uma das placeholders no formato do seu chat:
+  #   %vclans_prefix%        -> Ex: [TAG] com cor e espaço (vazio se o jogador não tiver clã)
+  #   %vclans_tag_formatted% -> Ex: [TAG] com cor e colchetes
+  #   %vclans_tag_colored%   -> Ex: TAG colorida sem colchetes
+  #   %vclans_tag%           -> Ex: TAG crua sem formatação
+  #   %vclans_role_prefix%   -> Ex: [Líder] 
+  #   %vclans_chat_prefix%   -> Ex: [Líder] [TAG] 
+  #
+  # Caso NÃO utilize nenhum plugin de chat, ative 'override-chat-format: true' abaixo:
+  override-chat-format: false
+  format: "{role_prefix}{clan_tag}&f{player}: &7{message}"
+  no-clan-tag: ""
+  clan-tag-format: "&8[{color}{tag}&8] "
+
+# Chat Exclusivo de Clã (Comando: /. <mensagem>)
+clan-chat:
+  enabled: true
+  # Formato exclusivo para o chat de membros do clã
+  # Placeholders: {clan}, {tag}, {color}, {role}, {role_prefix}, {player}, {message}
+  format: "&8[&bClã&8] &r{role_prefix}&f{player}&8: {message}"
+  # Cor padrão da mensagem (usuário pediu &b como cor default)
+  default-message-color: "&b"
+  # Se 'true', jogadores com permissão vclans.chat.color podem usar cores customizadas
+  allow-colors: true
+
+# Tag na Scoreboard e Nametag (Acima da Cabeça do Jogador)
+nametag:
+  enabled: true
+  # Se 'true', o vClans aplica automaticamente a tag acima da cabeça do jogador usando Vanilla Scoreboard Teams.
+  # Se você usa um plugin como TAB para gerenciar nametags, pode usar a placeholder:
+  #   %vclans_nametag%  -> Ex: [STF] com cor e espaço
+  #   %vclans_sigla%    -> Ex: STF (apenas a sigla crua)
+  #   %vclans_sigla_colorida% -> Ex: STF com a cor do clã
+  #   %vclans_tag_colored%    -> Ex: STF colorido
+  use-vanilla-teams: true
+  # Formato que aparece antes do nome acima da cabeça (exemplo: [STF] Nome ou STF Nome)
+  prefix-format: "&8[{color}{tag}&8] &r"
+
+# Pontuação e Anti-Abuso
+stats:
+  points-per-kill: 5
+  points-lost-on-death: 2
+  points-per-duel-win: 25
+  points-lost-on-duel-loss: 10
+  points-per-war-win: 100
+  points-lost-on-war-loss: 50
+  # Anti-Farming: segundos de cooldown para ganhar pontos matando o mesmo jogador novamente
+  kill-cooldown-seconds: 300
+  # Impede ganhar pontos se a vítima estiver no mesmo IP que o assassino
+  prevent-same-ip-farming: true
+
+# Top Clãs em HD no Spawn
+top-display:
+  update-interval-seconds: 300 # Recalcular ranking a cada 5 minutos
+  billboard-mode: 'CENTER' # CENTER (rotaciona com o jogador), FIXED, ou VERTICAL
+  scale: 1.15
+  view-distance: 48
+  background-color: 0x40000000 # Preto translúcido no formato ARGB
+
