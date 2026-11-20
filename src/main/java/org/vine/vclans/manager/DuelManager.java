@@ -207,18 +207,28 @@ public class DuelManager {
             }
         }
 
-        List<Player> allChallenger = challenger.getOnlinePlayers();
-        List<Player> allTarget = target.getOnlinePlayers();
+        List<Player> allChallenger = new ArrayList<>();
+        for (Player p : challenger.getOnlinePlayers()) {
+            if (isEligibleForDuel(p)) {
+                allChallenger.add(p);
+            }
+        }
+        List<Player> allTarget = new ArrayList<>();
+        for (Player p : target.getOnlinePlayers()) {
+            if (isEligibleForDuel(p)) {
+                allTarget.add(p);
+            }
+        }
 
         if (allChallenger.size() < teamSize) {
-            String msg = prefix + "&cO clã desafiante não possui mais " + teamSize + " membros online para o duelo " + teamSize + "v" + teamSize + "!";
+            String msg = prefix + "&cO clã desafiante não possui mais " + teamSize + " membros disponíveis para o duelo " + teamSize + "v" + teamSize + "!";
             target.broadcast(msg);
             challenger.broadcast(msg);
             return false;
         }
 
         if (allTarget.size() < teamSize) {
-            String msg = prefix + "&cSeu clã não possui mais " + teamSize + " membros online para o duelo " + teamSize + "v" + teamSize + "!";
+            String msg = prefix + "&cSeu clã não possui mais " + teamSize + " membros disponíveis para o duelo " + teamSize + "v" + teamSize + "!";
             target.broadcast(msg);
             challenger.broadcast(msg);
             return false;
@@ -227,7 +237,7 @@ public class DuelManager {
         // Selecionar exatamente teamSize jogadores de cada clã
         List<Player> selectedA = new ArrayList<>();
         Player senderA = Bukkit.getPlayer(challenge.getSenderUuid());
-        if (senderA != null && senderA.isOnline() && challenger.isMember(senderA.getUniqueId())) {
+        if (isEligibleForDuel(senderA) && challenger.isMember(senderA.getUniqueId())) {
             selectedA.add(senderA);
         }
         for (Player p : allChallenger) {
@@ -238,7 +248,7 @@ public class DuelManager {
         }
 
         List<Player> selectedB = new ArrayList<>();
-        if (acceptor != null && acceptor.isOnline() && target.isMember(acceptor.getUniqueId())) {
+        if (isEligibleForDuel(acceptor) && target.isMember(acceptor.getUniqueId())) {
             selectedB.add(acceptor);
         }
         for (Player p : allTarget) {
@@ -273,11 +283,17 @@ public class DuelManager {
 
         // Teleportar jogadores: Todos do Time A para spawn1, Todos do Time B para spawn2
         for (Player p : selectedA) {
+            if (p.isInsideVehicle()) {
+                p.leaveVehicle();
+            }
             p.teleport(arena.getSpawn1());
             p.setHealth(p.getMaxHealth());
             p.setFoodLevel(20);
         }
         for (Player p : selectedB) {
+            if (p.isInsideVehicle()) {
+                p.leaveVehicle();
+            }
             p.teleport(arena.getSpawn2());
             p.setHealth(p.getMaxHealth());
             p.setFoodLevel(20);
@@ -292,6 +308,14 @@ public class DuelManager {
         broadcastToDuel(duel, "&e&l[DUELO " + teamSize + "v" + teamSize + "] &aDuelo iniciado! Preparem-se!", Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
 
         return true;
+    }
+
+    private boolean isEligibleForDuel(Player p) {
+        if (p == null || !p.isOnline() || p.isDead() || isPlayerInDuel(p.getUniqueId())) {
+            return false;
+        }
+        GlobalEventManager globalEvent = plugin.getGlobalEventManager();
+        return globalEvent == null || !globalEvent.isParticipating(p.getUniqueId());
     }
 
     public void handlePlayerDeath(Player victim, Player killer) {

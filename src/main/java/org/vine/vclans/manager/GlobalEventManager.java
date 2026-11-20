@@ -97,6 +97,10 @@ public class GlobalEventManager implements Listener {
         return participants.contains(uuid);
     }
 
+    public boolean isParticipating(UUID uuid) {
+        return participants.contains(uuid);
+    }
+
     public boolean isEliminated(UUID uuid) {
         return eliminated.contains(uuid);
     }
@@ -148,6 +152,9 @@ public class GlobalEventManager implements Listener {
             if (p != null && p.isOnline()) {
                 p.sendMessage(ColorUtil.color(endMsg));
                 if (exitLocation != null && exitLocation.getWorld() != null) {
+                    if (p.isInsideVehicle()) {
+                        p.leaveVehicle();
+                    }
                     p.teleport(exitLocation);
                 }
             }
@@ -161,8 +168,17 @@ public class GlobalEventManager implements Listener {
     public void joinEvent(Player player) {
         String prefix = config.getString("messages.prefix", "&#7B2CBF&lE&#8E37D7&lC&#A247E8&lL&#B75CFF&lY&#CB75FF&lP&#DF92FF&lS&#F0B2FF&lE &r&#9A7AA0» &r");
 
+        if (player == null || player.isDead()) {
+            return;
+        }
+
         if (!active) {
             player.sendMessage(ColorUtil.color(prefix + config.getString("messages.event-not-active", "&cO Evento Global de Clãs não está ativo no momento.")));
+            return;
+        }
+
+        if (plugin.getDuelManager() != null && plugin.getDuelManager().isPlayerInDuel(player.getUniqueId())) {
+            player.sendMessage(ColorUtil.color(prefix + "&cVocê não pode entrar no Evento Global durante um duelo!"));
             return;
         }
 
@@ -192,6 +208,9 @@ public class GlobalEventManager implements Listener {
         }
 
         // Teleportar e registrar
+        if (player.isInsideVehicle()) {
+            player.leaveVehicle();
+        }
         player.teleport(spawnLocation);
         participants.add(player.getUniqueId());
 
@@ -212,6 +231,9 @@ public class GlobalEventManager implements Listener {
         eliminated.add(player.getUniqueId());
 
         if (exitLocation != null && exitLocation.getWorld() != null) {
+            if (player.isInsideVehicle()) {
+                player.leaveVehicle();
+            }
             player.teleport(exitLocation);
         }
 
@@ -249,6 +271,9 @@ public class GlobalEventManager implements Listener {
         if (exitLocation != null && exitLocation.getWorld() != null) {
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 if (victim.isOnline()) {
+                    if (victim.isInsideVehicle()) {
+                        victim.leaveVehicle();
+                    }
                     victim.teleport(exitLocation);
                 }
             }, 5L);
@@ -266,11 +291,25 @@ public class GlobalEventManager implements Listener {
             return;
         }
 
-        String message = event.getMessage().toLowerCase();
+        String raw = event.getMessage().trim().toLowerCase(java.util.Locale.ROOT);
+        int spaceIdx = raw.indexOf(' ');
+        String firstToken = spaceIdx == -1 ? raw : raw.substring(0, spaceIdx);
+        String rest = spaceIdx == -1 ? "" : raw.substring(spaceIdx);
+        if (firstToken.startsWith("/")) {
+            int colonIdx = firstToken.indexOf(':');
+            if (colonIdx > 0) {
+                firstToken = "/" + firstToken.substring(colonIdx + 1);
+            }
+        }
+        String normalized = firstToken + rest;
+
         List<String> blocked = config.getStringList("settings.blocked-commands");
         if (blocked != null) {
             for (String cmd : blocked) {
-                if (message.startsWith(cmd.toLowerCase())) {
+                if (cmd == null || cmd.isBlank()) continue;
+                String target = cmd.trim().toLowerCase(java.util.Locale.ROOT);
+                if (normalized.equals(target) || normalized.startsWith(target + " ")
+                        || raw.equals(target) || raw.startsWith(target + " ")) {
                     event.setCancelled(true);
                     String prefix = config.getString("messages.prefix", "&#7B2CBF&lE&#8E37D7&lC&#A247E8&lL&#B75CFF&lY&#CB75FF&lP&#DF92FF&lS&#F0B2FF&lE &r&#9A7AA0» &r");
                     player.sendMessage(ColorUtil.color(prefix + config.getString("messages.blocked-command-msg", "&cVocê não pode utilizar este comando dentro do evento!")));

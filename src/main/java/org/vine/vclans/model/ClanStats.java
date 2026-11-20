@@ -54,12 +54,20 @@ public class ClanStats {
         this.kills++;
     }
 
+    public void setKills(int kills) {
+        this.kills = Math.max(0, kills);
+    }
+
     public int getDeaths() {
         return deaths;
     }
 
     public void addDeath() {
         this.deaths++;
+    }
+
+    public void setDeaths(int deaths) {
+        this.deaths = Math.max(0, deaths);
     }
 
     public int getDuelWins() {
@@ -70,12 +78,20 @@ public class ClanStats {
         this.duelWins++;
     }
 
+    public void setDuelWins(int duelWins) {
+        this.duelWins = Math.max(0, duelWins);
+    }
+
     public int getDuelLosses() {
         return duelLosses;
     }
 
     public void addDuelLoss() {
         this.duelLosses++;
+    }
+
+    public void setDuelLosses(int duelLosses) {
+        this.duelLosses = Math.max(0, duelLosses);
     }
 
     public int getWarWins() {
@@ -86,12 +102,20 @@ public class ClanStats {
         this.warWins++;
     }
 
+    public void setWarWins(int warWins) {
+        this.warWins = Math.max(0, warWins);
+    }
+
     public int getWarLosses() {
         return warLosses;
     }
 
     public void addWarLoss() {
         this.warLosses++;
+    }
+
+    public void setWarLosses(int warLosses) {
+        this.warLosses = Math.max(0, warLosses);
     }
 
     public double getKdr() {

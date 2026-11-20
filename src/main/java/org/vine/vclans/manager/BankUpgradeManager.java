@@ -144,7 +144,7 @@ public class BankUpgradeManager {
             return new TransactionResult(false, "Aguarde um instante antes de realizar outra operação.");
         }
 
-        long maxTx = Math.max(1L, plugin.getConfig().getLong("bank.max-deposit-tp-per-tx", 1_000_000_000L));
+        long maxTx = Math.min(1_000_000_000L, Math.max(1L, plugin.getConfig().getLong("bank.max-deposit-tp-per-tx", 1_000_000_000L)));
         if (amount <= 0L || amount > maxTx) {
             return new TransactionResult(false, "Valor de TP inválido para depósito.");
         }
@@ -203,7 +203,7 @@ public class BankUpgradeManager {
             return new TransactionResult(false, "Valor inválido.");
         }
         double amount = Math.round(rawAmount * 100.0) / 100.0;
-        double maxTx = Math.max(1.0, plugin.getConfig().getDouble("bank.max-deposit-money-per-tx", 1_000_000_000.0));
+        double maxTx = Math.min(1_000_000_000.0, Math.max(1.0, plugin.getConfig().getDouble("bank.max-deposit-money-per-tx", 1_000_000_000.0)));
         if (amount < 1.0 || amount > maxTx) {
             return new TransactionResult(false, "Valor de dinheiro inválido (mínimo 1.0).");
         }

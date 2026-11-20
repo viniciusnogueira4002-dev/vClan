@@ -56,20 +56,12 @@ public class ClanRepository {
                 if (clan != null) {
                     ClanStats stats = clan.getStats();
                     stats.setPoints(rs.getInt("points"));
-                    // Carregar kills e deaths
-                    int kills = rs.getInt("kills");
-                    int deaths = rs.getInt("deaths");
-                    for (int i = 0; i < kills; i++) stats.addKill();
-                    for (int i = 0; i < deaths; i++) stats.addDeath();
-                    // Duelos e Guerras
-                    int dWins = rs.getInt("duel_wins");
-                    int dLosses = rs.getInt("duel_losses");
-                    int wWins = rs.getInt("war_wins");
-                    int wLosses = rs.getInt("war_losses");
-                    for (int i = 0; i < dWins; i++) stats.addDuelWin();
-                    for (int i = 0; i < dLosses; i++) stats.addDuelLoss();
-                    for (int i = 0; i < wWins; i++) stats.addWarWin();
-                    for (int i = 0; i < wLosses; i++) stats.addWarLoss();
+                    stats.setKills(rs.getInt("kills"));
+                    stats.setDeaths(rs.getInt("deaths"));
+                    stats.setDuelWins(rs.getInt("duel_wins"));
+                    stats.setDuelLosses(rs.getInt("duel_losses"));
+                    stats.setWarWins(rs.getInt("war_wins"));
+                    stats.setWarLosses(rs.getInt("war_losses"));
                 }
             }
         } catch (SQLException e) {

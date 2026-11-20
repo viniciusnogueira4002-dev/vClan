@@ -14,7 +14,6 @@ import org.vine.vclans.model.ClanUpgrades.UpgradeType;
 import org.vine.vclans.util.ColorUtil;
 import org.vine.vclans.util.TimeUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -517,8 +516,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
-        ClanMember member = clan.getMember(target.getUniqueId());
+        ClanMember member = findMemberByName(clan, args[1]);
         if (member == null) {
             player.sendMessage(ColorUtil.color(prefix + "&cEste jogador não pertence ao seu clã."));
             return;
@@ -530,7 +528,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        plugin.getClanManager().removeMember(clan, target.getUniqueId(), player.getName(), true);
+        plugin.getClanManager().removeMember(clan, member.getUuid(), player.getName(), true);
         player.sendMessage(ColorUtil.color(prefix + plugin.getMessages().getString("clan.member-kicked", "")
                 .replace("{player}", member.getLastKnownName())
                 .replace("{actor}", player.getName())));
@@ -551,8 +549,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
-        ClanMember member = clan.getMember(target.getUniqueId());
+        ClanMember member = findMemberByName(clan, args[1]);
         if (member == null) {
             player.sendMessage(ColorUtil.color(prefix + "&cEste jogador não pertence ao seu clã."));
             return;
@@ -570,7 +567,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        plugin.getClanManager().setRole(clan, target.getUniqueId(), next, player.getUniqueId());
+        plugin.getClanManager().setRole(clan, member.getUuid(), next, player.getUniqueId());
         player.sendMessage(ColorUtil.color(prefix + plugin.getMessages().getString("clan.role-promoted", "")
                 .replace("{player}", member.getLastKnownName())
                 .replace("{role}", next.getDefaultDisplayName())));
@@ -591,8 +588,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
-        ClanMember member = clan.getMember(target.getUniqueId());
+        ClanMember member = findMemberByName(clan, args[1]);
         if (member == null) {
             player.sendMessage(ColorUtil.color(prefix + "&cEste jogador não pertence ao seu clã."));
             return;
@@ -610,7 +606,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        plugin.getClanManager().setRole(clan, target.getUniqueId(), next, player.getUniqueId());
+        plugin.getClanManager().setRole(clan, member.getUuid(), next, player.getUniqueId());
         player.sendMessage(ColorUtil.color(prefix + plugin.getMessages().getString("clan.role-demoted", "")
                 .replace("{player}", member.getLastKnownName())
                 .replace("{role}", next.getDefaultDisplayName())));
@@ -627,16 +623,34 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
-        ClanMember member = clan.getMember(target.getUniqueId());
+        ClanMember member = findMemberByName(clan, args[1]);
         if (member == null) {
             player.sendMessage(ColorUtil.color(prefix + "&cEste jogador não pertence ao seu clã."));
             return;
         }
 
-        plugin.getClanManager().transferLeadership(clan, target.getUniqueId(), player.getUniqueId());
+        plugin.getClanManager().transferLeadership(clan, member.getUuid(), player.getUniqueId());
         player.sendMessage(ColorUtil.color(prefix + plugin.getMessages().getString("clan.leader-transferred", "")
                 .replace("{player}", member.getLastKnownName())));
+    }
+
+    private ClanMember findMemberByName(Clan clan, String name) {
+        if (clan == null || name == null || name.isBlank()) {
+            return null;
+        }
+        Player online = Bukkit.getPlayerExact(name);
+        if (online != null) {
+            ClanMember byUuid = clan.getMember(online.getUniqueId());
+            if (byUuid != null) {
+                return byUuid;
+            }
+        }
+        for (ClanMember m : clan.getMembers().values()) {
+            if (m.getLastKnownName() != null && m.getLastKnownName().equalsIgnoreCase(name)) {
+                return m;
+            }
+        }
+        return null;
     }
 
     private void handleTag(Player player, String[] args, String prefix) {
