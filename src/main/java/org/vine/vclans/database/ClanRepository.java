@@ -96,9 +96,37 @@ public class ClanRepository {
                     }
                     long joined = rs.getLong("joined_at");
                     long lastSeen = rs.getLong("last_seen");
+                    long donatedTp = getLongSafe(rs, "donated_tp");
+                    double donatedMoney = getDoubleSafe(rs, "donated_money");
+                    int warPoints = getIntSafe(rs, "war_points");
 
-                    ClanMember member = new ClanMember(playerUuid, name, role, Instant.ofEpochMilli(joined), Instant.ofEpochMilli(lastSeen));
+                    ClanMember member = new ClanMember(playerUuid, name, role,
+                            Instant.ofEpochMilli(joined), Instant.ofEpochMilli(lastSeen),
+                            donatedTp, donatedMoney, warPoints);
                     clan.addMember(member);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // Carregar Economia, Upgrades e Guerra da Temporada
+        String sqlEconomy = "SELECT * FROM eclypse_clan_economy";
+        try (Connection conn = db.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sqlEconomy);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                UUID clanId = UUID.fromString(rs.getString("clan_id"));
+                Clan clan = clans.get(clanId);
+                if (clan != null) {
+                    clan.getBank().setTp(rs.getLong("bank_tp"));
+                    clan.getBank().setMoney(rs.getDouble("bank_money"));
+                    clan.getUpgrades().setTpMultiplierLevel(rs.getInt("tp_mult_level"));
+                    clan.getUpgrades().setMoneyMultiplierLevel(rs.getInt("money_mult_level"));
+                    clan.getUpgrades().setMemberLimitLevel(rs.getInt("member_limit_level"));
+                    clan.getUpgrades().setWarMultiplierLevel(rs.getInt("war_mult_level"));
+                    clan.setSeasonWarPoints(rs.getInt("season_war_points"));
                 }
             }
         } catch (SQLException e) {
@@ -159,6 +187,7 @@ public class ClanRepository {
         }
 
         saveStats(clan);
+        saveEconomy(clan);
     }
 
     private void saveClanFallback(Clan clan) {
@@ -252,15 +281,86 @@ public class ClanRepository {
         }
     }
 
+    public void saveEconomy(Clan clan) {
+        String sql = """
+            INSERT INTO eclypse_clan_economy (clan_id, bank_tp, bank_money, tp_mult_level, money_mult_level, member_limit_level, war_mult_level, season_war_points)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(clan_id) DO UPDATE SET
+                bank_tp = excluded.bank_tp,
+                bank_money = excluded.bank_money,
+                tp_mult_level = excluded.tp_mult_level,
+                money_mult_level = excluded.money_mult_level,
+                member_limit_level = excluded.member_limit_level,
+                war_mult_level = excluded.war_mult_level,
+                season_war_points = excluded.season_war_points;
+        """;
+        ClanBank bank = clan.getBank();
+        ClanUpgrades upgrades = clan.getUpgrades();
+        try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, clan.getId().toString());
+            ps.setLong(2, bank.getTp());
+            ps.setDouble(3, bank.getMoney());
+            ps.setInt(4, upgrades.getTpMultiplierLevel());
+            ps.setInt(5, upgrades.getMoneyMultiplierLevel());
+            ps.setInt(6, upgrades.getMemberLimitLevel());
+            ps.setInt(7, upgrades.getWarMultiplierLevel());
+            ps.setInt(8, clan.getSeasonWarPoints());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            String update = "UPDATE eclypse_clan_economy SET bank_tp=?, bank_money=?, tp_mult_level=?, money_mult_level=?, member_limit_level=?, war_mult_level=?, season_war_points=? WHERE clan_id=?";
+            try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(update)) {
+                ps.setLong(1, bank.getTp());
+                ps.setDouble(2, bank.getMoney());
+                ps.setInt(3, upgrades.getTpMultiplierLevel());
+                ps.setInt(4, upgrades.getMoneyMultiplierLevel());
+                ps.setInt(5, upgrades.getMemberLimitLevel());
+                ps.setInt(6, upgrades.getWarMultiplierLevel());
+                ps.setInt(7, clan.getSeasonWarPoints());
+                ps.setString(8, clan.getId().toString());
+                int rows = ps.executeUpdate();
+                if (rows == 0) {
+                    String insert = "INSERT INTO eclypse_clan_economy (clan_id, bank_tp, bank_money, tp_mult_level, money_mult_level, member_limit_level, war_mult_level, season_war_points) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                    try (PreparedStatement ins = conn.prepareStatement(insert)) {
+                        ins.setString(1, clan.getId().toString());
+                        ins.setLong(2, bank.getTp());
+                        ins.setDouble(3, bank.getMoney());
+                        ins.setInt(4, upgrades.getTpMultiplierLevel());
+                        ins.setInt(5, upgrades.getMoneyMultiplierLevel());
+                        ins.setInt(6, upgrades.getMemberLimitLevel());
+                        ins.setInt(7, upgrades.getWarMultiplierLevel());
+                        ins.setInt(8, clan.getSeasonWarPoints());
+                        ins.executeUpdate();
+                    }
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    public void resetAllSeasonWarPoints() {
+        String sql = "UPDATE eclypse_clan_economy SET season_war_points = 0";
+        String memberSql = "UPDATE eclypse_clan_members SET war_points = 0";
+        try (Connection conn = db.getConnection(); Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate(sql);
+            stmt.executeUpdate(memberSql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void saveMember(UUID clanId, ClanMember member) {
         String sql = """
-            INSERT INTO eclypse_clan_members (clan_id, player_uuid, player_name, role, joined_at, last_seen)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO eclypse_clan_members (clan_id, player_uuid, player_name, role, joined_at, last_seen, donated_tp, donated_money, war_points)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(player_uuid) DO UPDATE SET
                 clan_id = excluded.clan_id,
                 player_name = excluded.player_name,
                 role = excluded.role,
-                last_seen = excluded.last_seen;
+                last_seen = excluded.last_seen,
+                donated_tp = excluded.donated_tp,
+                donated_money = excluded.donated_money,
+                war_points = excluded.war_points;
         """;
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, clanId.toString());
@@ -269,18 +369,24 @@ public class ClanRepository {
             ps.setString(4, member.getRole().name());
             ps.setLong(5, member.getJoinedAt().toEpochMilli());
             ps.setLong(6, member.getLastSeen().toEpochMilli());
+            ps.setLong(7, member.getDonatedTp());
+            ps.setDouble(8, member.getDonatedMoney());
+            ps.setInt(9, member.getWarPointsContributed());
             ps.executeUpdate();
         } catch (SQLException e) {
-            String update = "UPDATE eclypse_clan_members SET clan_id=?, player_name=?, role=?, last_seen=? WHERE player_uuid=?";
+            String update = "UPDATE eclypse_clan_members SET clan_id=?, player_name=?, role=?, last_seen=?, donated_tp=?, donated_money=?, war_points=? WHERE player_uuid=?";
             try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(update)) {
                 ps.setString(1, clanId.toString());
                 ps.setString(2, member.getLastKnownName());
                 ps.setString(3, member.getRole().name());
                 ps.setLong(4, member.getLastSeen().toEpochMilli());
-                ps.setString(5, member.getUuid().toString());
+                ps.setLong(5, member.getDonatedTp());
+                ps.setDouble(6, member.getDonatedMoney());
+                ps.setInt(7, member.getWarPointsContributed());
+                ps.setString(8, member.getUuid().toString());
                 int rows = ps.executeUpdate();
                 if (rows == 0) {
-                    String insert = "INSERT INTO eclypse_clan_members (clan_id, player_uuid, player_name, role, joined_at, last_seen) VALUES (?, ?, ?, ?, ?, ?)";
+                    String insert = "INSERT INTO eclypse_clan_members (clan_id, player_uuid, player_name, role, joined_at, last_seen, donated_tp, donated_money, war_points) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
                     try (PreparedStatement ins = conn.prepareStatement(insert)) {
                         ins.setString(1, clanId.toString());
                         ins.setString(2, member.getUuid().toString());
@@ -288,6 +394,9 @@ public class ClanRepository {
                         ins.setString(4, member.getRole().name());
                         ins.setLong(5, member.getJoinedAt().toEpochMilli());
                         ins.setLong(6, member.getLastSeen().toEpochMilli());
+                        ins.setLong(7, member.getDonatedTp());
+                        ins.setDouble(8, member.getDonatedMoney());
+                        ins.setInt(9, member.getWarPointsContributed());
                         ins.executeUpdate();
                     }
                 }
@@ -493,6 +602,18 @@ public class ClanRepository {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private long getLongSafe(ResultSet rs, String col) {
+        try { return rs.getLong(col); } catch (SQLException ignored) { return 0L; }
+    }
+
+    private double getDoubleSafe(ResultSet rs, String col) {
+        try { return rs.getDouble(col); } catch (SQLException ignored) { return 0.0; }
+    }
+
+    private int getIntSafe(ResultSet rs, String col) {
+        try { return rs.getInt(col); } catch (SQLException ignored) { return 0; }
     }
 }
 

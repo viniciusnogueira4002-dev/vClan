@@ -9,7 +9,8 @@ public enum ClanRole {
             ClanPermission.INVITE, ClanPermission.KICK, ClanPermission.PROMOTE,
             ClanPermission.DEMOTE, ClanPermission.EDIT_INFO, ClanPermission.TAG_COLOR,
             ClanPermission.ALLIANCE, ClanPermission.DUEL, ClanPermission.WAR,
-            ClanPermission.BANK_DEPOSIT, ClanPermission.BANK_WITHDRAW, ClanPermission.SETTINGS
+            ClanPermission.BANK_DEPOSIT, ClanPermission.BANK_WITHDRAW, ClanPermission.BANK_UPGRADE,
+            ClanPermission.SETTINGS
     )),
     CAPTAIN(2, "&#55FFFFCapitão", "&8[&#55FFFFCapitão&8] ", EnumSet.of(
             ClanPermission.INVITE, ClanPermission.KICK, ClanPermission.DUEL,

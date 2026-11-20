@@ -7,13 +7,16 @@ import org.vine.vclans.database.ClanRepository;
 import org.vine.vclans.database.DatabaseManager;
 import org.vine.vclans.database.MySQLDatabase;
 import org.vine.vclans.database.SQLiteDatabase;
+import org.vine.vclans.hook.DragonMineZHook;
 import org.vine.vclans.hook.PlaceholderHook;
 import org.vine.vclans.hook.VaultHook;
 import org.vine.vclans.listener.ChatListener;
+import org.vine.vclans.listener.ClanFarmWarListener;
 import org.vine.vclans.listener.CombatListener;
 import org.vine.vclans.listener.PlayerListener;
 import org.vine.vclans.manager.*;
 import org.vine.vclans.menu.MenuListener;
+import org.vine.vclans.network.ClanModNetworkManager;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -40,8 +43,12 @@ public final class VClans extends JavaPlugin {
     private TopDisplayManager topDisplayManager;
     private ScoreboardManager scoreboardManager;
     private GlobalEventManager globalEventManager;
+    private BankUpgradeManager bankUpgradeManager;
+    private SeasonWarManager seasonWarManager;
+    private ClanModNetworkManager modNetworkManager;
 
     private VaultHook vaultHook;
+    private DragonMineZHook dragonMineZHook;
 
     @Override
     public void onEnable() {
@@ -61,6 +68,7 @@ public final class VClans extends JavaPlugin {
 
         // Inicializar Hooks
         this.vaultHook = new VaultHook();
+        this.dragonMineZHook = new DragonMineZHook(this);
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new PlaceholderHook(this, "vclans").register();
             new PlaceholderHook(this, "eclypseclans").register();
@@ -77,6 +85,9 @@ public final class VClans extends JavaPlugin {
         this.warManager = new WarManager(this);
         this.topDisplayManager = new TopDisplayManager(this);
         this.globalEventManager = new GlobalEventManager(this);
+        this.bankUpgradeManager = new BankUpgradeManager(this);
+        this.seasonWarManager = new SeasonWarManager(this);
+        this.modNetworkManager = new ClanModNetworkManager(this);
 
         // Registrar Listeners
         var pm = Bukkit.getPluginManager();
@@ -84,6 +95,7 @@ public final class VClans extends JavaPlugin {
         pm.registerEvents(new CombatListener(this), this);
         pm.registerEvents(new PlayerListener(this), this);
         pm.registerEvents(new ChatListener(this), this);
+        pm.registerEvents(new ClanFarmWarListener(this), this);
         pm.registerEvents(globalEventManager, this);
 
         // Registrar Comandos
@@ -134,6 +146,22 @@ public final class VClans extends JavaPlugin {
 
         if (globalEventManager != null) {
             globalEventManager.cleanup();
+        }
+
+        if (seasonWarManager != null) {
+            seasonWarManager.cleanup();
+        }
+
+        if (bankUpgradeManager != null) {
+            bankUpgradeManager.cleanup();
+        }
+
+        if (modNetworkManager != null) {
+            modNetworkManager.cleanup();
+        }
+
+        if (dragonMineZHook != null) {
+            dragonMineZHook.cleanup();
         }
 
         if (clanManager != null) {
@@ -209,6 +237,9 @@ public final class VClans extends JavaPlugin {
         if (globalEventManager != null) {
             globalEventManager.loadConfig();
         }
+        if (seasonWarManager != null) {
+            seasonWarManager.loadConfig();
+        }
     }
 
     public static VClans getInstance() {
@@ -259,8 +290,24 @@ public final class VClans extends JavaPlugin {
         return globalEventManager;
     }
 
+    public BankUpgradeManager getBankUpgradeManager() {
+        return bankUpgradeManager;
+    }
+
+    public SeasonWarManager getSeasonWarManager() {
+        return seasonWarManager;
+    }
+
+    public ClanModNetworkManager getModNetworkManager() {
+        return modNetworkManager;
+    }
+
     public VaultHook getVaultHook() {
         return vaultHook;
+    }
+
+    public DragonMineZHook getDragonMineZHook() {
+        return dragonMineZHook;
     }
 }
 

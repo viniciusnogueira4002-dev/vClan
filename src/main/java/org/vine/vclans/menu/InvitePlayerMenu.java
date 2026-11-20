@@ -78,9 +78,10 @@ public class InvitePlayerMenu extends Menu {
                             plugin.getMessages().getString("invite.already-invited", "")));
                     return;
                 }
-                if (clan.getMembersCount() >= plugin.getConfig().getInt("clan.max-members", 20)) {
+                if (clan.getMembersCount() >= plugin.getBankUpgradeManager().getMaxMembers(clan)) {
                     player.sendMessage(ColorUtil.color(plugin.getMessages().getString("prefix", "") +
-                            plugin.getMessages().getString("clan.limit-reached", "")));
+                            plugin.getMessages().getString("clan.limit-reached", "")
+                                    .replace("{max}", String.valueOf(plugin.getBankUpgradeManager().getMaxMembers(clan)))));
                     return;
                 }
 

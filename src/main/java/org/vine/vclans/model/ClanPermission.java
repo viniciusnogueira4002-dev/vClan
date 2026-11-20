@@ -12,6 +12,7 @@ public enum ClanPermission {
     WAR("Gerenciar Guerras"),
     BANK_DEPOSIT("Depositar no Banco"),
     BANK_WITHDRAW("Sacar do Banco"),
+    BANK_UPGRADE("Comprar Upgrades do Banco"),
     SETTINGS("Alterar Configurações"),
     DISBAND("Desfazer Clã");
 

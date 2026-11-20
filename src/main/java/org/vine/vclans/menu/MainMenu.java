@@ -129,8 +129,9 @@ public class MainMenu extends Menu {
                       "",
                       "&7Líder: &f" + leaderName,
                       "&7Seu Cargo: " + role.getDefaultDisplayName(),
-                      "&7Membros: &a" + clan.getMembersCount() + "/" + plugin.getConfig().getInt("clan.max-members", 20),
-                      "&7Pontos: &#FFAA00" + clan.getStats().getPoints(),
+                      "&7Membros: &a" + clan.getMembersCount() + "/" + plugin.getBankUpgradeManager().getMaxMembers(clan),
+                      "&7Pontos: &#FFAA00" + clan.getStats().getPoints() + " &8| &7Guerra: &#FF5555" + clan.getSeasonWarPoints(),
+                      "&7Banco: &b" + clan.getBank().getTp() + " TP &8| &a$" + String.format(java.util.Locale.US, "%.2f", clan.getBank().getMoney()),
                       "&7KDR: &#55FFFF" + clan.getStats().getFormattedKdr(),
                       "&7Fundado em: &e" + TimeUtil.formatDate(clan.getCreatedAt()))
                 .glow()
@@ -254,6 +255,19 @@ public class MainMenu extends Menu {
                       "",
                       "&e▶ Clique para visualizar!")
                 .build(), e -> new RankingMenu(player, plugin, RankingMenu.RankingType.POINTS).open());
+
+        // Slot 31: Banco & Upgrades do Clã
+        setItem(31, new ItemBuilder(Material.ENDER_CHEST)
+                .name("&#FFAA00&lBanco & Upgrades do Clã")
+                .lore("&7Deposite TP e Dinheiro para evoluir",
+                      "&7os multiplicadores e vagas do clã!",
+                      "",
+                      "&7TP no Banco: &b" + clan.getBank().getTp(),
+                      "&7Money no Banco: &a$" + String.format(java.util.Locale.US, "%.2f", clan.getBank().getMoney()),
+                      "",
+                      "&e▶ Clique para abrir o Banco!")
+                .glow()
+                .build(), e -> plugin.getBankUpgradeManager().openClanBankUi(player));
 
         // Slot 38: Sair do Clã
         if (!isLeader) {

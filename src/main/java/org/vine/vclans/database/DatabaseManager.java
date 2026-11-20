@@ -51,6 +51,29 @@ public abstract class DatabaseManager {
                     role VARCHAR(16) NOT NULL,
                     joined_at BIGINT NOT NULL,
                     last_seen BIGINT NOT NULL,
+                    donated_tp BIGINT DEFAULT 0,
+                    donated_money DOUBLE DEFAULT 0,
+                    war_points INT DEFAULT 0,
+                    FOREIGN KEY (clan_id) REFERENCES eclypse_clans(id) ON DELETE CASCADE
+                );
+            """);
+
+            // Migração segura de colunas em bancos pré-existentes
+            try { stmt.executeUpdate("ALTER TABLE eclypse_clan_members ADD COLUMN donated_tp BIGINT DEFAULT 0;"); } catch (SQLException ignored) {}
+            try { stmt.executeUpdate("ALTER TABLE eclypse_clan_members ADD COLUMN donated_money DOUBLE DEFAULT 0;"); } catch (SQLException ignored) {}
+            try { stmt.executeUpdate("ALTER TABLE eclypse_clan_members ADD COLUMN war_points INT DEFAULT 0;"); } catch (SQLException ignored) {}
+
+            // Tabela de Economia, Upgrades e Guerra da Temporada
+            stmt.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS eclypse_clan_economy (
+                    clan_id VARCHAR(36) PRIMARY KEY,
+                    bank_tp BIGINT DEFAULT 0,
+                    bank_money DOUBLE DEFAULT 0,
+                    tp_mult_level INT DEFAULT 0,
+                    money_mult_level INT DEFAULT 0,
+                    member_limit_level INT DEFAULT 0,
+                    war_mult_level INT DEFAULT 0,
+                    season_war_points INT DEFAULT 0,
                     FOREIGN KEY (clan_id) REFERENCES eclypse_clans(id) ON DELETE CASCADE
                 );
             """);

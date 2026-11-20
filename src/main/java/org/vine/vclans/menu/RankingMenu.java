@@ -13,6 +13,7 @@ public class RankingMenu extends Menu {
 
     public enum RankingType {
         POINTS("Pontos Totais", Material.NETHER_STAR),
+        SEASON_WAR("Guerra da Temporada", Material.NETHERITE_SWORD),
         DUELS("Vitórias em Duelo", Material.DIAMOND_SWORD),
         WARS("Vitórias em Guerra", Material.FIRE_CHARGE),
         KDR("Taxa de KDR", Material.BOW);
@@ -44,8 +45,8 @@ public class RankingMenu extends Menu {
             setItem(i, new ItemBuilder(Material.GRAY_STAINED_GLASS_PANE).name(" ").build());
         }
 
-        // Filtros no topo (Slots 1, 3, 5, 7)
-        int[] filterSlots = {1, 3, 5, 7};
+        // Filtros no topo (Slots 0, 2, 4, 6, 8)
+        int[] filterSlots = {0, 2, 4, 6, 8};
         RankingType[] types = RankingType.values();
         for (int idx = 0; idx < types.length; idx++) {
             RankingType rType = types[idx];
@@ -65,6 +66,7 @@ public class RankingMenu extends Menu {
         // Buscar lista correspondente
         List<Clan> list = switch (type) {
             case POINTS -> plugin.getClanManager().getTopClansByPoints(10);
+            case SEASON_WAR -> plugin.getSeasonWarManager().getTopSeasonClans(10);
             case DUELS -> plugin.getClanManager().getTopClansByDuels(10);
             case WARS -> plugin.getClanManager().getTopClansByWars(10);
             case KDR -> plugin.getClanManager().getTopClansByKDR(10);
@@ -97,8 +99,9 @@ public class RankingMenu extends Menu {
                 ItemBuilder ib = new ItemBuilder(mat)
                         .name(medal + c.getName() + " &8[" + c.getTagColor() + c.getTag() + "&8]")
                         .lore("&7Líder: &f" + leaderName,
-                              "&7Membros: &a" + c.getMembersCount() + "/" + plugin.getConfig().getInt("clan.max-members", 20),
-                              "&7Pontos: &#FFAA00" + c.getStats().getPoints(),
+                              "&7Membros: &a" + c.getMembersCount() + "/" + plugin.getBankUpgradeManager().getMaxMembers(c),
+                              "&7Pontos da Temporada (Guerra): &#FF5555" + c.getSeasonWarPoints(),
+                              "&7Pontos Gerais: &#FFAA00" + c.getStats().getPoints(),
                               "&7KDR: &#55FFFF" + c.getStats().getFormattedKdr(),
                               "&7Duelos: &#55FF55" + c.getStats().getDuelWins() + "V &7/ &#FF5555" + c.getStats().getDuelLosses() + "D",
                               "&7Guerras: &#55FF55" + c.getStats().getWarWins() + "V &7/ &#FF5555" + c.getStats().getWarLosses() + "D");

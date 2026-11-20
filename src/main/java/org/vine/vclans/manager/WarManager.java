@@ -76,6 +76,20 @@ public class WarManager {
         return warId != null ? activeWars.get(warId) : null;
     }
 
+    public Set<UUID> getPendingWarDeclarationsForTarget(UUID targetClanId) {
+        if (targetClanId == null) return Collections.emptySet();
+        Map<UUID, Instant> map = pendingDeclarations.get(targetClanId);
+        if (map == null || map.isEmpty()) return Collections.emptySet();
+        Instant now = Instant.now();
+        Set<UUID> result = new HashSet<>();
+        for (Map.Entry<UUID, Instant> entry : map.entrySet()) {
+            if (now.isBefore(entry.getValue())) {
+                result.add(entry.getKey());
+            }
+        }
+        return result;
+    }
+
     public boolean declareWar(Clan clan, Clan target) {
         if (isAtWar(clan.getId()) || isAtWar(target.getId())) {
             return false;

@@ -20,6 +20,9 @@ public class Clan {
     private final Map<UUID, ClanMember> members;
     private final ClanStats stats;
     private final ClanSettings settings;
+    private final ClanBank bank;
+    private final ClanUpgrades upgrades;
+    private volatile int seasonWarPoints;
     private final Set<UUID> allies;
     private final Set<UUID> rivals;
     private final List<ClanLogEntry> auditLogs;
@@ -35,6 +38,9 @@ public class Clan {
         this.members = new ConcurrentHashMap<>();
         this.stats = new ClanStats();
         this.settings = new ClanSettings();
+        this.bank = new ClanBank();
+        this.upgrades = new ClanUpgrades();
+        this.seasonWarPoints = 0;
         this.allies = ConcurrentHashMap.newKeySet();
         this.rivals = ConcurrentHashMap.newKeySet();
         this.auditLogs = new CopyOnWriteArrayList<>();
@@ -95,6 +101,31 @@ public class Clan {
 
     public ClanSettings getSettings() {
         return settings;
+    }
+
+    public ClanBank getBank() {
+        return bank;
+    }
+
+    public ClanUpgrades getUpgrades() {
+        return upgrades;
+    }
+
+    public int getSeasonWarPoints() {
+        return seasonWarPoints;
+    }
+
+    public synchronized void setSeasonWarPoints(int seasonWarPoints) {
+        this.seasonWarPoints = Math.max(0, seasonWarPoints);
+    }
+
+    public synchronized void addSeasonWarPoints(int delta) {
+        if (delta <= 0) return;
+        try {
+            this.seasonWarPoints = Math.addExact(this.seasonWarPoints, delta);
+        } catch (ArithmeticException overflow) {
+            this.seasonWarPoints = Integer.MAX_VALUE;
+        }
     }
 
     public Set<UUID> getAllies() {

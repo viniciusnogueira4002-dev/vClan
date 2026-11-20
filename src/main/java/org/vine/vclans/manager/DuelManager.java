@@ -78,6 +78,19 @@ public class DuelManager {
         return playerDuelMap.get(playerUuid);
     }
 
+    public List<DuelChallenge> getPendingChallengesForTarget(UUID targetClanId) {
+        if (targetClanId == null) return Collections.emptyList();
+        Map<UUID, DuelChallenge> map = pendingChallenges.get(targetClanId);
+        if (map == null || map.isEmpty()) return Collections.emptyList();
+        List<DuelChallenge> result = new ArrayList<>();
+        for (DuelChallenge challenge : map.values()) {
+            if (!challenge.isExpired()) {
+                result.add(challenge);
+            }
+        }
+        return result;
+    }
+
     public boolean areOpponentsInActiveDuel(UUID playerA, UUID playerB) {
         ActiveDuel duelA = playerDuelMap.get(playerA);
         ActiveDuel duelB = playerDuelMap.get(playerB);

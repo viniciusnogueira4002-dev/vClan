@@ -18,3 +18,48 @@ settings:
 wars:
   # Dados das guerras ativas
 
+# Guerra de Clãs por Temporada (Disputa por Pontos)
+season-war:
+  enabled: true
+  # Horários de Pico (2x Pontos de Guerra) no formato HH:mm-HH:mm
+  double-points-windows:
+    - "19:00-21:00"
+  # Fechamento automático semanal da temporada
+  auto-close:
+    enabled: true
+    day-of-week: "SUNDAY"
+    time: "22:00"
+  last-auto-close-date: ""
+  # Fontes de Pontos de Guerra
+  points:
+    pvp-kill: 25
+    default-monster: 1
+    mobs-by-type:
+      WITHER: 50
+      ENDER_DRAGON: 100
+    mobs-by-name:
+      "Freeza": 25
+      "Cell": 40
+      "Majin Boo": 60
+    blocks:
+      COAL_ORE: 1
+      IRON_ORE: 2
+      GOLD_ORE: 3
+      DIAMOND_ORE: 5
+      DEEPSLATE_DIAMOND_ORE: 6
+      ANCIENT_DEBRIS: 10
+  # Premiação automática ao encerrar temporada
+  rewards:
+    top1:
+      bank-tp: 100000
+      bank-money: 50000.0
+      clan-points: 500
+    top2:
+      bank-tp: 50000
+      bank-money: 25000.0
+      clan-points: 250
+    top3:
+      bank-tp: 25000
+      bank-money: 10000.0
+      clan-points: 100
+

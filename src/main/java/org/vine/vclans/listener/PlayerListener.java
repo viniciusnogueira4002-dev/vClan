@@ -99,6 +99,12 @@ public class PlayerListener implements Listener {
         // Liberar referências de memória no quit
         killCooldowns.remove(uuid);
         plugin.getFriendlyFireManager().removeAttacker(uuid);
+        if (plugin.getBankUpgradeManager() != null) {
+            plugin.getBankUpgradeManager().clearCooldown(uuid);
+        }
+        if (plugin.getModNetworkManager() != null) {
+            plugin.getModNetworkManager().clearRateLimit(uuid);
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -134,6 +140,17 @@ public class PlayerListener implements Listener {
                         clanVictim.getStats().addDeath();
                         int ptsLoss = plugin.getConfig().getInt("stats.points-lost-on-death", 2);
                         plugin.getClanManager().removePoints(clanVictim, ptsLoss);
+
+                        if (!clanKiller.isAlly(clanVictim.getId()) && plugin.getSeasonWarManager() != null) {
+                            int pvpWarPts = plugin.getSeasonWarManager().getPvpKillWarPoints();
+                            if (pvpWarPts > 0) {
+                                int gainedWar = plugin.getSeasonWarManager().addWarPoints(clanKiller, killer, pvpWarPts, "Abate PvP");
+                                if (gainedWar > 0) {
+                                    String prefix = plugin.getMessages().getString("prefix", "");
+                                    killer.sendMessage(ColorUtil.color(prefix + "&#FFAA00+" + gainedWar + " Pontos de Guerra &7por abater &e" + victim.getName() + "&7!"));
+                                }
+                            }
+                        }
                     }
                 }
             }

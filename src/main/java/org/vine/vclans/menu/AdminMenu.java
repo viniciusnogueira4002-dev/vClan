@@ -43,7 +43,7 @@ public class AdminMenu extends Menu {
                     .name("&#FFAA00" + c.getName() + " &8[" + c.getTagColor() + c.getTag() + "&8]")
                     .lore("&7ID: &8" + c.getId().toString().substring(0, 8) + "...",
                           "&7Líder: &f" + leaderName,
-                          "&7Membros: &a" + c.getMembersCount() + "/" + plugin.getConfig().getInt("clan.max-members", 20),
+                          "&7Membros: &a" + c.getMembersCount() + "/" + plugin.getBankUpgradeManager().getMaxMembers(c),
                           "&7Pontos: &#FFAA00" + c.getStats().getPoints(),
                           "",
                           "&#55FF55[BOTÃO ESQUERDO] &7Adicionar 100 pontos",

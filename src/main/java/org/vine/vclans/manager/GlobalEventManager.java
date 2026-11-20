@@ -110,7 +110,7 @@ public class GlobalEventManager implements Listener {
         this.eliminated.clear();
         this.active = true;
 
-        String prefix = config.getString("messages.prefix", "&6[EVENTO CLÃS] ");
+        String prefix = config.getString("messages.prefix", "&#7B2CBF&lE&#8E37D7&lC&#A247E8&lL&#B75CFF&lY&#CB75FF&lP&#DF92FF&lS&#F0B2FF&lE &r&#9A7AA0» &r");
 
         // Broadcast de Anúncio
         List<String> announcement = config.getStringList("messages.announcement");
@@ -139,7 +139,7 @@ public class GlobalEventManager implements Listener {
 
     public void stopEvent() {
         this.active = false;
-        String prefix = config.getString("messages.prefix", "&6[EVENTO CLÃS] ");
+        String prefix = config.getString("messages.prefix", "&#7B2CBF&lE&#8E37D7&lC&#A247E8&lL&#B75CFF&lY&#CB75FF&lP&#DF92FF&lS&#F0B2FF&lE &r&#9A7AA0» &r");
         String endMsg = prefix + config.getString("messages.event-ended", "&cO Evento Global de Clãs foi encerrado!");
 
         // Teleportar todos os participantes para a saída
@@ -159,7 +159,7 @@ public class GlobalEventManager implements Listener {
     }
 
     public void joinEvent(Player player) {
-        String prefix = config.getString("messages.prefix", "&6[EVENTO CLÃS] ");
+        String prefix = config.getString("messages.prefix", "&#7B2CBF&lE&#8E37D7&lC&#A247E8&lL&#B75CFF&lY&#CB75FF&lP&#DF92FF&lS&#F0B2FF&lE &r&#9A7AA0» &r");
 
         if (!active) {
             player.sendMessage(ColorUtil.color(prefix + config.getString("messages.event-not-active", "&cO Evento Global de Clãs não está ativo no momento.")));
@@ -202,7 +202,7 @@ public class GlobalEventManager implements Listener {
     }
 
     public void leaveEvent(Player player) {
-        String prefix = config.getString("messages.prefix", "&6[EVENTO CLÃS] ");
+        String prefix = config.getString("messages.prefix", "&#7B2CBF&lE&#8E37D7&lC&#A247E8&lL&#B75CFF&lY&#CB75FF&lP&#DF92FF&lS&#F0B2FF&lE &r&#9A7AA0» &r");
         if (!participants.contains(player.getUniqueId())) {
             player.sendMessage(ColorUtil.color(prefix + "&cVocê não está dentro do evento!"));
             return;
@@ -228,7 +228,7 @@ public class GlobalEventManager implements Listener {
         participants.remove(victim.getUniqueId());
         eliminated.add(victim.getUniqueId());
 
-        String prefix = config.getString("messages.prefix", "&6[EVENTO CLÃS] ");
+        String prefix = config.getString("messages.prefix", "&#7B2CBF&lE&#8E37D7&lC&#A247E8&lL&#B75CFF&lY&#CB75FF&lP&#DF92FF&lS&#F0B2FF&lE &r&#9A7AA0» &r");
         victim.sendMessage(ColorUtil.color(prefix + config.getString("messages.eliminated", "&cVocê foi abatido e eliminado do evento! Não é possível retornar.")));
 
         Clan clan = plugin.getClanManager().getClanByPlayer(victim);
@@ -272,7 +272,7 @@ public class GlobalEventManager implements Listener {
             for (String cmd : blocked) {
                 if (message.startsWith(cmd.toLowerCase())) {
                     event.setCancelled(true);
-                    String prefix = config.getString("messages.prefix", "&6[EVENTO CLÃS] ");
+                    String prefix = config.getString("messages.prefix", "&#7B2CBF&lE&#8E37D7&lC&#A247E8&lL&#B75CFF&lY&#CB75FF&lP&#DF92FF&lS&#F0B2FF&lE &r&#9A7AA0» &r");
                     player.sendMessage(ColorUtil.color(prefix + config.getString("messages.blocked-command-msg", "&cVocê não pode utilizar este comando dentro do evento!")));
                     return;
                 }

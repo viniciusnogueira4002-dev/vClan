@@ -110,3 +110,68 @@ top-display:
   view-distance: 48
   background-color: 0x40000000 # Preto translúcido no formato ARGB
 
+# Banco Dual do Clã (Política Mão Única - Sem Saque)
+bank:
+  transaction-cooldown-ms: 500
+  max-deposit-tp-per-tx: 1000000000
+  max-deposit-money-per-tx: 1000000000.0
+
+# Upgrades do Clã (Comprados com TP + Money do Banco)
+upgrades:
+  tp-multiplier:
+    max-level: 10
+    bonus-per-level: 5.0 # +5% por nível (Nv.10 = +50%)
+    base-cost-tp: 10000
+    base-cost-money: 5000.0
+    cost-scale-multiplier: 1.75
+  money-multiplier:
+    max-level: 10
+    bonus-per-level: 5.0 # +5% por nível (Nv.10 = +50%)
+    base-cost-tp: 10000
+    base-cost-money: 5000.0
+    cost-scale-multiplier: 1.75
+  member-limit:
+    max-level: 5
+    bonus-per-level: 2.0 # +2 vagas extras por nível
+    base-cost-tp: 25000
+    base-cost-money: 15000.0
+    cost-scale-multiplier: 1.8
+  war-multiplier:
+    max-level: 10
+    bonus-per-level: 3.0 # +3% pontos extras na Guerra de Clãs
+    base-cost-tp: 15000
+    base-cost-money: 10000.0
+    cost-scale-multiplier: 1.75
+
+# Recompensas Passivas de Farm e Combate (Multiplicadores de TP e Money)
+# NÃO incide em /pay nem itens consumíveis!
+farm-rewards:
+  enabled: true
+  # Se 'true', entrega APENAS a porcentagem bônus do clã (útil se o DMZ/NPC já entrega o valor base).
+  # Se 'false', o vClans entrega (valor base * multiplicador do clã).
+  bonus-only-mode: false
+  actionbar-enabled: true
+  default-monster:
+    tp: 25
+    money: 10.0
+  entities-by-type:
+    ZOMBIE:
+      tp: 20
+      money: 8.0
+    SKELETON:
+      tp: 25
+      money: 10.0
+    WITHER:
+      tp: 1500
+      money: 750.0
+  entities-by-name:
+    "Freeza":
+      tp: 500
+      money: 250.0
+    "Cell":
+      tp: 800
+      money: 400.0
+    "Majin Boo":
+      tp: 1200
+      money: 600.0
+

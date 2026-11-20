@@ -1,6 +1,8 @@
 package org.vine.vclans.command;
 
 import org.vine.vclans.VClans;
+import org.vine.vclans.manager.BankUpgradeManager;
+import org.vine.vclans.manager.BankUpgradeManager.TransactionResult;
 import org.vine.vclans.menu.AdminMenu;
 import org.vine.vclans.menu.MainMenu;
 import org.vine.vclans.menu.RankingMenu;
@@ -8,6 +10,7 @@ import org.vine.vclans.model.Clan;
 import org.vine.vclans.model.ClanMember;
 import org.vine.vclans.model.ClanPermission;
 import org.vine.vclans.model.ClanRole;
+import org.vine.vclans.model.ClanUpgrades.UpgradeType;
 import org.vine.vclans.util.ColorUtil;
 import org.vine.vclans.util.TimeUtil;
 import org.bukkit.Bukkit;
@@ -48,14 +51,18 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         String prefix = plugin.getMessages().getString("prefix", "");
 
         if (args.length == 0) {
-            new MainMenu(player, plugin).open();
+            if (!plugin.getBankUpgradeManager().openClanModUi(player, BankUpgradeManager.TAB_OVERVIEW)) {
+                new MainMenu(player, plugin).open();
+            }
             return true;
         }
 
         String sub = args[0].toLowerCase();
         switch (sub) {
             case "menu", "gui" -> {
-                new MainMenu(player, plugin).open();
+                if (!plugin.getBankUpgradeManager().openClanModUi(player, BankUpgradeManager.TAB_OVERVIEW)) {
+                    new MainMenu(player, plugin).open();
+                }
                 return true;
             }
 
@@ -120,7 +127,9 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             }
 
             case "top", "ranking" -> {
-                new RankingMenu(player, plugin, RankingMenu.RankingType.POINTS).open();
+                if (!plugin.getBankUpgradeManager().openClanModUi(player, BankUpgradeManager.TAB_RANKINGS)) {
+                    new RankingMenu(player, plugin, RankingMenu.RankingType.POINTS).open();
+                }
                 return true;
             }
 
@@ -141,6 +150,11 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
 
             case "guerra", "war" -> {
                 handleWar(player, args, prefix);
+                return true;
+            }
+
+            case "banco", "bank", "upgrade", "upgrades" -> {
+                handleBank(player, args, prefix);
                 return true;
             }
 
@@ -191,7 +205,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             }
 
             default -> {
-                player.sendMessage(ColorUtil.color(prefix + "&cUso: /clan [criar|info|convidar|aceitar|recusar|sair|top|duelo|alianca|guerra]"));
+                player.sendMessage(ColorUtil.color(prefix + "&cUso: /clan [criar|info|banco|convidar|aceitar|recusar|sair|top|duelo|alianca|guerra]"));
                 return true;
             }
         }
@@ -298,7 +312,9 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(ColorUtil.color(" &#FFAA00&l" + clan.getName() + " &8[" + clan.getTagColor() + clan.getTag() + "&8]"));
         player.sendMessage(ColorUtil.color(" &7Descrição: &f" + clan.getDescription()));
         player.sendMessage(ColorUtil.color(" &7Líder: &f" + leaderName));
-        player.sendMessage(ColorUtil.color(" &7Membros: &a" + clan.getMembersCount() + "/" + plugin.getConfig().getInt("clan.max-members", 20)));
+        player.sendMessage(ColorUtil.color(" &7Membros: &a" + clan.getMembersCount() + "/" + plugin.getBankUpgradeManager().getMaxMembers(clan)));
+        player.sendMessage(ColorUtil.color(" &7Banco: &b" + clan.getBank().getTp() + " TP &8| &a$" + String.format(Locale.US, "%.2f", clan.getBank().getMoney())));
+        player.sendMessage(ColorUtil.color(" &7Guerra (Temporada): &#FF5555" + clan.getSeasonWarPoints() + " pts"));
         player.sendMessage(ColorUtil.color(" &7Pontos: &#FFAA00" + clan.getStats().getPoints() + " &8| &7KDR: &#55FFFF" + clan.getStats().getFormattedKdr()));
         player.sendMessage(ColorUtil.color(" &7Duelos: &#55FF55" + clan.getStats().getDuelWins() + "V &7/ &#FF5555" + clan.getStats().getDuelLosses() + "D"));
         player.sendMessage(ColorUtil.color(" &7Guerras: &#55FF55" + clan.getStats().getWarWins() + "V &7/ &#FF5555" + clan.getStats().getWarLosses() + "D"));
@@ -350,8 +366,9 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        if (clan.getMembersCount() >= plugin.getConfig().getInt("clan.max-members", 20)) {
-            player.sendMessage(ColorUtil.color(prefix + plugin.getMessages().getString("clan.limit-reached", "")));
+        if (clan.getMembersCount() >= plugin.getBankUpgradeManager().getMaxMembers(clan)) {
+            player.sendMessage(ColorUtil.color(prefix + plugin.getMessages().getString("clan.limit-reached", "")
+                    .replace("{max}", String.valueOf(plugin.getBankUpgradeManager().getMaxMembers(clan)))));
             return;
         }
 
@@ -380,7 +397,9 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 player.sendMessage(ColorUtil.color(prefix + plugin.getMessages().getString("invite.no-pending", "")));
                 return;
             } else {
-                new org.vine.vclans.menu.PendingInvitesMenu(player, plugin).open();
+                if (!plugin.getBankUpgradeManager().openClanModUi(player, BankUpgradeManager.TAB_BANK)) {
+                    new org.vine.vclans.menu.PendingInvitesMenu(player, plugin).open();
+                }
                 return;
             }
         }
@@ -395,8 +414,9 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        if (clan.getMembersCount() >= plugin.getConfig().getInt("clan.max-members", 20)) {
-            player.sendMessage(ColorUtil.color(prefix + plugin.getMessages().getString("clan.limit-reached", "")));
+        if (clan.getMembersCount() >= plugin.getBankUpgradeManager().getMaxMembers(clan)) {
+            player.sendMessage(ColorUtil.color(prefix + plugin.getMessages().getString("clan.limit-reached", "")
+                    .replace("{max}", String.valueOf(plugin.getBankUpgradeManager().getMaxMembers(clan)))));
             return;
         }
 
@@ -428,7 +448,9 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 player.sendMessage(ColorUtil.color(prefix + plugin.getMessages().getString("invite.no-pending", "")));
                 return;
             } else {
-                new org.vine.vclans.menu.PendingInvitesMenu(player, plugin).open();
+                if (!plugin.getBankUpgradeManager().openClanModUi(player, BankUpgradeManager.TAB_BANK)) {
+                    new org.vine.vclans.menu.PendingInvitesMenu(player, plugin).open();
+                }
                 return;
             }
         }
@@ -677,7 +699,9 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        new org.vine.vclans.menu.DuelMenu(player, plugin, clan).open();
+        if (!plugin.getBankUpgradeManager().openClanModUi(player, BankUpgradeManager.TAB_COMBAT)) {
+            new org.vine.vclans.menu.DuelMenu(player, plugin, clan).open();
+        }
     }
 
     private void handleDirectChallenge(Player player, String[] args, String prefix) {
@@ -782,10 +806,33 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        new org.vine.vclans.menu.AlliancesMenu(player, plugin, clan).open();
+        if (!plugin.getBankUpgradeManager().openClanModUi(player, BankUpgradeManager.TAB_COMBAT)) {
+            new org.vine.vclans.menu.AlliancesMenu(player, plugin, clan).open();
+        }
     }
 
     private void handleWar(Player player, String[] args, String prefix) {
+        if (args.length >= 2 && (args[1].equalsIgnoreCase("top")
+                || args[1].equalsIgnoreCase("ranking")
+                || args[1].equalsIgnoreCase("pontos"))) {
+            var warMgr = plugin.getSeasonWarManager();
+            List<Clan> top = warMgr.getTopSeasonClans(10);
+            player.sendMessage(ColorUtil.color("&8&m----------------------------------------"));
+            player.sendMessage(ColorUtil.color(" &#FF5555&lGUERRA DE CLÃS (TEMPORADA) "
+                    + (warMgr.isDoublePointsActive() ? "&#55FF55[2X ATIVO]" : "")));
+            if (top.isEmpty()) {
+                player.sendMessage(ColorUtil.color(" &7Nenhum clã pontuou nesta temporada."));
+            } else {
+                for (int i = 0; i < top.size(); i++) {
+                    Clan c = top.get(i);
+                    player.sendMessage(ColorUtil.color(" &e#" + (i + 1) + " &f" + c.getName()
+                            + " &8[" + c.getTagColor() + c.getTag() + "&8] &7- &#FFAA00" + c.getSeasonWarPoints() + " pts"));
+                }
+            }
+            player.sendMessage(ColorUtil.color("&8&m----------------------------------------"));
+            return;
+        }
+
         Clan clan = plugin.getClanManager().getClanByPlayer(player);
         if (clan == null) {
             player.sendMessage(ColorUtil.color(prefix + plugin.getMessages().getString("general.not-in-clan", "")));
@@ -835,7 +882,74 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        player.sendMessage(ColorUtil.color(prefix + "&cUso: /clan guerra [declarar|aceitar|render-se] <tag>"));
+        player.sendMessage(ColorUtil.color(prefix + "&cUso: /clan guerra [top|declarar|aceitar|render-se] <tag>"));
+    }
+
+    private void handleBank(Player player, String[] args, String prefix) {
+        Clan clan = plugin.getClanManager().getClanByPlayer(player);
+        if (clan == null) {
+            player.sendMessage(ColorUtil.color(prefix + plugin.getMessages().getString("general.not-in-clan", "")));
+            return;
+        }
+
+        if (args.length == 1) {
+            plugin.getBankUpgradeManager().openClanBankUi(player);
+            return;
+        }
+
+        BankUpgradeManager mgr = plugin.getBankUpgradeManager();
+        String action = args[1].toLowerCase();
+
+        if (action.equals("depositar") || action.equals("deposit")) {
+            if (args.length < 4) {
+                player.sendMessage(ColorUtil.color(prefix + "&cUso: /clan banco depositar <tp|money> <quantia>"));
+                return;
+            }
+            String type = args[2].toLowerCase();
+            if (type.equals("tp")) {
+                long amount;
+                try {
+                    amount = Long.parseLong(args[3]);
+                } catch (NumberFormatException ex) {
+                    player.sendMessage(ColorUtil.color(prefix + "&cInforme um valor inteiro válido de TP."));
+                    return;
+                }
+                TransactionResult res = mgr.depositTp(player, amount);
+                player.sendMessage(mgr.formatFeedback(res));
+                return;
+            }
+            if (type.equals("money") || type.equals("dinheiro")) {
+                double amount;
+                try {
+                    amount = Double.parseDouble(args[3].replace(",", "."));
+                } catch (NumberFormatException ex) {
+                    player.sendMessage(ColorUtil.color(prefix + "&cInforme um valor numérico válido de Money."));
+                    return;
+                }
+                TransactionResult res = mgr.depositMoney(player, amount);
+                player.sendMessage(mgr.formatFeedback(res));
+                return;
+            }
+            player.sendMessage(ColorUtil.color(prefix + "&cTipo inválido! Use &e/clan banco depositar <tp|money> <quantia>"));
+            return;
+        }
+
+        if (action.equals("upar") || action.equals("upgrade")) {
+            if (args.length < 3) {
+                player.sendMessage(ColorUtil.color(prefix + "&cUso: /clan banco upar <tp|money|membros|guerra>"));
+                return;
+            }
+            UpgradeType type = UpgradeType.fromKey(args[2]);
+            if (type == null) {
+                player.sendMessage(ColorUtil.color(prefix + "&cUpgrade inválido! Opções: &etp, money, membros, guerra"));
+                return;
+            }
+            TransactionResult res = mgr.buyUpgrade(player, type);
+            player.sendMessage(mgr.formatFeedback(res));
+            return;
+        }
+
+        plugin.getBankUpgradeManager().openClanBankUi(player);
     }
 
     private void handleAdmin(Player player, String[] args, String prefix) {
@@ -978,7 +1092,21 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        new AdminMenu(player, plugin, 0).open();
+        if (args.length >= 2 && args[1].equalsIgnoreCase("guerra2x")) {
+            boolean active = plugin.getSeasonWarManager().toggleManualDoublePoints();
+            player.sendMessage(ColorUtil.color(prefix + "&#FFAA00Bônus 2x da Guerra agora está: " + (active ? "&#55FF55ATIVADO" : "&cDESATIVADO")));
+            return;
+        }
+
+        if (args.length >= 2 && args[1].equalsIgnoreCase("encerrartemporada")) {
+            plugin.getSeasonWarManager().endSeasonAndReward();
+            player.sendMessage(ColorUtil.color(prefix + "&#55FF55Temporada de Guerra encerrada e premiada com sucesso!"));
+            return;
+        }
+
+        if (!plugin.getBankUpgradeManager().openClanModUi(player, BankUpgradeManager.TAB_ADMIN)) {
+            new AdminMenu(player, plugin, 0).open();
+        }
     }
 
     private void handleFriendlyFireToggle(Player player, String prefix) {
@@ -1024,7 +1152,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         if (args.length == 1) {
-            List<String> list = Arrays.asList("criar", "info", "convidar", "aceitar", "recusar", "sair", "expulsar", "promover", "rebaixar", "lider", "tag", "descricao", "top", "duelo", "desafiar", "alianca", "guerra", "convites", "ff", "fogoamigo", "chat", "evento", "menu");
+            List<String> list = Arrays.asList("criar", "info", "banco", "upgrade", "convidar", "aceitar", "recusar", "sair", "expulsar", "promover", "rebaixar", "lider", "tag", "descricao", "top", "duelo", "desafiar", "alianca", "guerra", "convites", "ff", "fogoamigo", "chat", "evento", "menu");
             return list.stream().filter(s -> s.startsWith(args[0].toLowerCase())).collect(Collectors.toList());
         }
 
@@ -1038,6 +1166,10 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 return plugin.getClanManager().getAllClans().stream().map(Clan::getTag)
                         .filter(t -> t.toLowerCase().startsWith(args[1].toLowerCase())).collect(Collectors.toList());
             }
+            if (sub.equals("banco") || sub.equals("bank")) {
+                return Arrays.asList("depositar", "upar").stream()
+                        .filter(s -> s.startsWith(args[1].toLowerCase())).collect(Collectors.toList());
+            }
             if (sub.equals("duelo")) {
                 return Arrays.asList("aceitar");
             }
@@ -1048,15 +1180,25 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 return Arrays.asList("convidar", "remover");
             }
             if (sub.equals("guerra")) {
-                return Arrays.asList("declarar", "aceitar", "render-se");
+                return Arrays.asList("top", "declarar", "aceitar", "render-se");
             }
             if (sub.equals("admin")) {
-                return Arrays.asList("top", "arena", "evento");
+                return Arrays.asList("top", "arena", "evento", "guerra2x", "encerrartemporada");
             }
         }
 
         if (args.length == 3) {
             String sub = args[0].toLowerCase();
+            if (sub.equals("banco") || sub.equals("bank")) {
+                if (args[1].equalsIgnoreCase("depositar") || args[1].equalsIgnoreCase("deposit")) {
+                    return Arrays.asList("tp", "money").stream()
+                            .filter(s -> s.startsWith(args[2].toLowerCase())).collect(Collectors.toList());
+                }
+                if (args[1].equalsIgnoreCase("upar") || args[1].equalsIgnoreCase("upgrade")) {
+                    return Arrays.asList("tp", "money", "membros", "guerra").stream()
+                            .filter(s -> s.startsWith(args[2].toLowerCase())).collect(Collectors.toList());
+                }
+            }
             if (sub.equals("desafiar")) {
                 return Arrays.asList("2", "3", "4", "5");
             }

@@ -24,6 +24,11 @@ public class VaultHook {
         return enabled;
     }
 
+    public double getBalance(Player player) {
+        if (!enabled || player == null) return 0.0;
+        return economy.getBalance(player);
+    }
+
     public boolean hasMoney(Player player, double amount) {
         if (!enabled || amount <= 0) return true;
         return economy.has(player, amount);

@@ -47,7 +47,7 @@ public class PendingInvitesMenu extends Menu {
 
                 setItem(slot++, new ItemBuilder(Material.WRITABLE_BOOK)
                         .name("&#FFAA00" + clan.getName() + " &8[" + clan.getTagColor() + clan.getTag() + "&8]")
-                        .lore("&7Membros: &a" + clan.getMembersCount() + "/" + plugin.getConfig().getInt("clan.max-members", 20),
+                        .lore("&7Membros: &a" + clan.getMembersCount() + "/" + plugin.getBankUpgradeManager().getMaxMembers(clan),
                               "&7Tempo restante: &e" + remaining + "s",
                               "",
                               "&#55FF55[BOTÃO ESQUERDO] &7Aceitar convite",
@@ -60,9 +60,10 @@ public class PendingInvitesMenu extends Menu {
                                     plugin.getMessages().getString("general.already-in-clan", "")));
                             return;
                         }
-                        if (clan.getMembersCount() >= plugin.getConfig().getInt("clan.max-members", 20)) {
+                        if (clan.getMembersCount() >= plugin.getBankUpgradeManager().getMaxMembers(clan)) {
                             player.sendMessage(ColorUtil.color(plugin.getMessages().getString("prefix", "") +
-                                    plugin.getMessages().getString("clan.limit-reached", "")));
+                                    plugin.getMessages().getString("clan.limit-reached", "")
+                                            .replace("{max}", String.valueOf(plugin.getBankUpgradeManager().getMaxMembers(clan)))));
                             return;
                         }
 
