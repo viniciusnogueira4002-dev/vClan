@@ -37,6 +37,7 @@ public class ClanRepository {
                 clan.getSettings().setFriendlyFire(ff);
                 clan.getSettings().setOpenJoin(open);
                 clan.getSettings().setNotifications(notif);
+                clan.setLastTagChangeAt(getLongSafe(rs, "last_tag_change"));
                 clans.put(id, clan);
             }
         } catch (SQLException e) {
@@ -156,8 +157,8 @@ public class ClanRepository {
 
     public void saveClan(Clan clan) {
         String sql = """
-            INSERT INTO eclypse_clans (id, name, tag, tag_color, description, leader_uuid, friendly_fire, open_join, notifications, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO eclypse_clans (id, name, tag, tag_color, description, leader_uuid, friendly_fire, open_join, notifications, created_at, last_tag_change)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 name = excluded.name,
                 tag = excluded.tag,
@@ -166,7 +167,8 @@ public class ClanRepository {
                 leader_uuid = excluded.leader_uuid,
                 friendly_fire = excluded.friendly_fire,
                 open_join = excluded.open_join,
-                notifications = excluded.notifications;
+                notifications = excluded.notifications,
+                last_tag_change = excluded.last_tag_change;
         """;
         try (Connection conn = db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -180,6 +182,7 @@ public class ClanRepository {
             ps.setBoolean(8, clan.getSettings().isOpenJoin());
             ps.setBoolean(9, clan.getSettings().isNotifications());
             ps.setLong(10, clan.getCreatedAt().toEpochMilli());
+            ps.setLong(11, clan.getLastTagChangeAt());
             ps.executeUpdate();
         } catch (SQLException e) {
             // Em caso de MySQL sem ON CONFLICT
@@ -191,7 +194,7 @@ public class ClanRepository {
     }
 
     private void saveClanFallback(Clan clan) {
-        String update = "UPDATE eclypse_clans SET name=?, tag=?, tag_color=?, description=?, leader_uuid=?, friendly_fire=?, open_join=?, notifications=? WHERE id=?";
+        String update = "UPDATE eclypse_clans SET name=?, tag=?, tag_color=?, description=?, leader_uuid=?, friendly_fire=?, open_join=?, notifications=?, last_tag_change=? WHERE id=?";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(update)) {
             ps.setString(1, clan.getName());
             ps.setString(2, clan.getTag());
@@ -201,10 +204,11 @@ public class ClanRepository {
             ps.setBoolean(6, clan.getSettings().isFriendlyFire());
             ps.setBoolean(7, clan.getSettings().isOpenJoin());
             ps.setBoolean(8, clan.getSettings().isNotifications());
-            ps.setString(9, clan.getId().toString());
+            ps.setLong(9, clan.getLastTagChangeAt());
+            ps.setString(10, clan.getId().toString());
             int rows = ps.executeUpdate();
             if (rows == 0) {
-                String insert = "INSERT INTO eclypse_clans (id, name, tag, tag_color, description, leader_uuid, friendly_fire, open_join, notifications, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                String insert = "INSERT INTO eclypse_clans (id, name, tag, tag_color, description, leader_uuid, friendly_fire, open_join, notifications, created_at, last_tag_change) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                 try (PreparedStatement ins = conn.prepareStatement(insert)) {
                     ins.setString(1, clan.getId().toString());
                     ins.setString(2, clan.getName());
@@ -216,6 +220,7 @@ public class ClanRepository {
                     ins.setBoolean(8, clan.getSettings().isOpenJoin());
                     ins.setBoolean(9, clan.getSettings().isNotifications());
                     ins.setLong(10, clan.getCreatedAt().toEpochMilli());
+                    ins.setLong(11, clan.getLastTagChangeAt());
                     ins.executeUpdate();
                 }
             }

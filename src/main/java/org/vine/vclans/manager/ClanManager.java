@@ -314,6 +314,7 @@ public class ClanManager {
     public void setTag(Clan clan, String newTag) {
         clanIdByTag.remove(clan.getTag().toLowerCase());
         clan.setTag(newTag);
+        clan.setLastTagChangeAt(System.currentTimeMillis());
         clanIdByTag.put(newTag.toLowerCase(), clan.getId());
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> repository.saveClan(clan));
@@ -321,6 +322,18 @@ public class ClanManager {
         for (Player p : clan.getOnlinePlayers()) {
             plugin.getScoreboardManager().updatePlayer(p);
         }
+    }
+
+    public long getRemainingTagChangeCooldownSeconds(Clan clan) {
+        if (clan == null || clan.getLastTagChangeAt() <= 0L) {
+            return 0L;
+        }
+        long cooldownSeconds = plugin.getConfig().getLong("clan.tag.change-cooldown-seconds", 86400L);
+        if (cooldownSeconds <= 0L) {
+            return 0L;
+        }
+        long elapsedSeconds = Math.max(0L, (System.currentTimeMillis() - clan.getLastTagChangeAt()) / 1000L);
+        return Math.max(0L, cooldownSeconds - elapsedSeconds);
     }
 
     public void setTagColor(Clan clan, String newColor) {
@@ -437,57 +450,88 @@ public class ClanManager {
         Clan clan = getClanByPlayer(sender);
         if (clan == null) {
             String prefix = plugin.getMessages().getString("prefix", "");
-            sender.sendMessage(ColorUtil.color(prefix + plugin.getMessages().getString("general.not-in-clan", "&#FF5555Você não pertence a nenhum clã.")));
+            sendToClanTab(sender, ColorUtil.color(prefix + plugin.getMessages().getString("general.not-in-clan", "&#FF5555Você não pertence a nenhum clã.")));
             return;
         }
 
-        if (rawMessage == null || rawMessage.trim().isEmpty()) {
-            sender.sendMessage(ColorUtil.color(plugin.getMessages().getString("clan.chat-usage", "&#FF5555Uso: &e/. <mensagem>")));
+        String cleanRaw = sanitizeClanChatInput(rawMessage, 256);
+        if (cleanRaw.isEmpty()) {
+            sendToClanTab(sender, ColorUtil.color(plugin.getMessages().getString("clan.chat-usage", "&#FF5555Uso: &e/. <mensagem>")));
             return;
         }
 
         ClanMember member = clan.getMember(sender.getUniqueId());
         ClanRole role = member != null ? member.getRole() : ClanRole.MEMBER;
 
-        // Cor padrão do chat do clã: &b
-        String defaultMsgColor = plugin.getConfig().getString("clan-chat.default-message-color", "&b");
+        String defaultMsgColor = plugin.getConfig().getString("clan-chat.default-message-color", "&#DDD6FE");
         boolean allowColors = plugin.getConfig().getBoolean("clan-chat.allow-colors", true);
 
         String messageFormatted;
         if (allowColors && (sender.hasPermission("vclans.chat.color") || sender.isOp())) {
-            messageFormatted = ColorUtil.color(defaultMsgColor + rawMessage);
+            messageFormatted = ColorUtil.color(defaultMsgColor + cleanRaw);
         } else {
-            messageFormatted = ColorUtil.color(defaultMsgColor + ColorUtil.strip(rawMessage));
+            messageFormatted = ColorUtil.color(defaultMsgColor) + cleanRaw;
         }
 
-        String format = plugin.getConfig().getString("clan-chat.format", "&8[&bClã&8] &r{role_prefix}&f{player}&8: {message}");
-        String finalOutput = ColorUtil.color(format
+        String format = plugin.getConfig().getString("clan-chat.format", "&8[&#A78BFA&lClã&8] &r{role_prefix}&f{player}&8: {message}");
+        String templateColored = ColorUtil.color(format
                 .replace("{clan}", clan.getName())
                 .replace("{tag}", clan.getTag())
                 .replace("{color}", clan.getTagColor())
                 .replace("{role}", role.getDefaultDisplayName())
                 .replace("{role_prefix}", role.getDefaultPrefix())
-                .replace("{player}", sender.getName())
-                .replace("{message}", messageFormatted));
+                .replace("{player}", sender.getName()));
+        String finalOutput = templateColored.replace("{message}", messageFormatted);
 
         List<Player> onlineMembers = clan.getOnlinePlayers();
         long otherOnlineCount = onlineMembers.stream()
                 .filter(p -> !p.getUniqueId().equals(sender.getUniqueId()))
                 .count();
 
-        // Enviar para todos os membros online do clã
+        // Enviar para todos os membros online do clã (roteado para a aba CLÃ do EclypseCore quando presente)
         for (Player p : onlineMembers) {
-            p.sendMessage(finalOutput);
+            sendToClanTab(p, finalOutput);
         }
 
         // Se ninguém do clã estiver online no momento, avisa no chat
         if (otherOnlineCount == 0) {
-            sender.sendMessage(ColorUtil.color(plugin.getMessages().getString(
+            sendToClanTab(sender, ColorUtil.color(plugin.getMessages().getString(
                     "clan.chat-no-members-online",
                     "&#FF5555[Clã] Ninguém do clã online no momento.")));
         }
 
-        plugin.getLogger().info("[Clan Chat - " + clan.getTag() + "] " + sender.getName() + ": " + rawMessage);
+        plugin.getLogger().info("[Clan Chat - " + clan.getTag() + "] " + sender.getName() + ": " + cleanRaw);
+    }
+
+    private void sendToClanTab(Player target, String coloredMessage) {
+        if (plugin.getEclypseCoreChatHook() != null) {
+            plugin.getEclypseCoreChatHook().sendClanMessage(target, coloredMessage);
+        } else if (target != null && target.isOnline()) {
+            target.sendMessage(coloredMessage);
+        }
+    }
+
+    private static String sanitizeClanChatInput(String raw, int maxLen) {
+        if (raw == null || raw.isEmpty()) {
+            return "";
+        }
+        String preCapped = raw.length() > 512 ? raw.substring(0, 512) : raw;
+        StringBuilder sb = new StringBuilder(Math.min(preCapped.length(), maxLen));
+        for (int i = 0; i < preCapped.length(); i++) {
+            char c = preCapped.charAt(i);
+            if (c < 0x20
+                    || c == 0x7F
+                    || c == '\u00A7'
+                    || c == '\u2028'
+                    || c == '\u2029'
+                    || Character.isISOControl(c)
+                    || Character.getType(c) == Character.FORMAT) {
+                continue;
+            }
+            sb.append(c);
+        }
+        String trimmed = sb.toString().strip();
+        return trimmed.length() > maxLen ? trimmed.substring(0, maxLen) : trimmed;
     }
 }
 

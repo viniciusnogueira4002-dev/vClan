@@ -17,11 +17,11 @@ Este documento orienta agentes de IA e desenvolvedores trabalhando no plugin **v
   - `LuckPerms` (permissões via Bukkit/Vault)
 - **Estrutura Principal:**
   - `command/`: `ClanCommand`, `ClanChatCommand`, `EventoCommand`
-  - `manager/`: `ClanManager`, `BankUpgradeManager` (banco mão única, 4 upgrades passivos e `openClanModUi(Player, int)`), `SeasonWarManager` (temporada semanal de guerra PvE/Farm/PvP + janelas 2x em `wars.yml`), `WarManager`, `DuelManager`, `InviteManager`, `FriendlyFireManager`, `ArenaManager`, `TopDisplayManager`, `ScoreboardManager`, `GlobalEventManager`
+  - `manager/`: `ClanManager` (inclui cooldown persistente de 24h/`86400s` para troca de Tag via `clan.tag.change-cooldown-seconds`), `BankUpgradeManager` (banco mão única, 4 upgrades passivos e `openClanModUi(Player, int)`), `SeasonWarManager` (temporada semanal de guerra PvE/Farm/PvP + janelas 2x em `wars.yml`), `WarManager`, `DuelManager`, `InviteManager`, `FriendlyFireManager`, `ArenaManager`, `TopDisplayManager` (listener `EntitiesLoadEvent`, hologramas `TextDisplay` voláteis com `setPersistent(false)` + chave PDC `vclans_top_display` e auto-limpeza de duplicatas), `ScoreboardManager`, `GlobalEventManager`
   - `listener/`: `CombatListener`, `PlayerListener`, `ChatListener`, `ClanFarmWarListener` (multiplicadores de farm em mobs/blocos e proteção contra blocos colocados por jogadores)
   - `menu/`: menus Bukkit em inventário herdando `Menu.java` (`MainMenu`, `BankUpgradeMenu`, `RankingMenu`, `MembersMenu`, `MemberActionMenu`, `AlliancesMenu`, `DuelMenu`, `ClanSettingsMenu`, `InvitePlayerMenu`, `PendingInvitesMenu`, `TagColorMenu`, `ConfirmationMenu`, `AdminMenu`) — mantidos como **fallback** caso o `EclypseCore` esteja ausente/desativado
   - `network/`: `ClanModNetworkManager.java` (canal `vclans:ui` compatível com Bukkit Plugin Messaging)
-  - `database/`: `DatabaseManager` (inclui tabela `eclypse_clan_economy` e colunas de doação/guerra em `eclypse_clan_members`), `ClanRepository`, `SQLiteDatabase`, `MySQLDatabase`
+  - `database/`: `DatabaseManager` (inclui tabela `eclypse_clan_economy`, `last_tag_change` em `eclypse_clans` e colunas de doação/guerra em `eclypse_clan_members`), `ClanRepository`, `SQLiteDatabase`, `MySQLDatabase`
 - **Prefixo Oficial (`messages.yml` e `eventoglobal.yml`):**
   `&#7B2CBF&lE&#8E37D7&lC&#A247E8&lL&#B75CFF&lY&#CB75FF&lP&#DF92FF&lS&#F0B2FF&lE &r&#9A7AA0» &r` (`ECLYPSE »`)
 
@@ -194,9 +194,9 @@ Todos iniciam com `byte version` (`1`) + `byte type`:
    - Jogadores ou sub-telas ainda não portadas para o mod continuam utilizando os menus de inventário em `org.vine.vclans.menu` (`MainMenu`, `BankUpgradeMenu`, `RankingMenu`, etc.). Ao portar uma nova tela para o mod, mantenha a lógica de negócio nos `*Manager` (nunca dentro de `Menu` Bukkit) para que tanto o menu em baú quanto a tela Astral Aberto no mod compartilhem exatamente as mesmas regras e validações.
 
 ### 3.3. Ponte Reflexiva com `EclypseCore` (`VClansBridge`)
-- Para abertura direta de telas customizadas no mod via comandos (`/clan`, `/clan banco`, `/clan top`, `/clan duelo`, `/clan alianca`, `/clan admin` e convites pendentes), o `BankUpgradeManager.openClanModUi(Player, int initialTab)` chama `kk.sleexzx.features.clan.server.VClansBridge.openClanMenu(UUID, int)` via reflexão.
+- Para abertura direta de telas customizadas no mod via comandos (`/clan`, `/clan banco`, `/clan top`, `/clan duelo`, `/clan alianca`, `/clan config`, `/clan admin` e convites pendentes), o `BankUpgradeManager.openClanModUi(Player, int initialTab)` chama `kk.sleexzx.features.clan.server.VClansBridge.openClanMenu(UUID, int)` via reflexão (`TAB_OVERVIEW=0`, `TAB_BANK=1`, `TAB_MEMBERS=2`, `TAB_COMBAT=3`, `TAB_RANKINGS=4`, `TAB_SETTINGS=5`, `TAB_ADMIN=6`).
 - **Ordenação de fechamento de inventário:** se o jogador estiver com um inventário `org.vine.vclans.menu.Menu` aberto, `player.closeInventory()` **deve** ser chamado **antes** de disparar o pacote Forge `OpenClanMenuS2CPacket`, evitando que o pacote vanilla de fechamento de container feche a `ClanScreen` no cliente.
-- Toda validação de permissões (`ClanPermission`), hierarquia (`ClanRole`), regex/comprimento de tag/nome/descrição, economia Vault/DMZ, duelos, alianças, guerras e ações de Staff continua executando estritamente na thread principal do servidor via `VClansBridge`.
+- Toda validação de permissões (`ClanPermission`), hierarquia (`ClanRole`), regex/comprimento/cooldown de tag/nome/descrição, economia Vault/DMZ, duelos, alianças, guerras e ações de Staff continua executando estritamente na thread principal do servidor via `VClansBridge`.
 
 ---
 

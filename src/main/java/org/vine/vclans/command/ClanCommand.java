@@ -158,6 +158,18 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
 
+            case "config", "configuracoes", "ajustes", "settings" -> {
+                Clan clan = plugin.getClanManager().getClanByPlayer(player);
+                if (clan == null) {
+                    player.sendMessage(ColorUtil.color(prefix + plugin.getMessages().getString("general.not-in-clan", "")));
+                    return true;
+                }
+                if (!plugin.getBankUpgradeManager().openClanModUi(player, BankUpgradeManager.TAB_SETTINGS)) {
+                    new org.vine.vclans.menu.ClanSettingsMenu(player, plugin, clan).open();
+                }
+                return true;
+            }
+
             case "convites", "invites" -> {
                 boolean active = plugin.getInviteManager().toggleInvites(player.getUniqueId());
                 player.sendMessage(ColorUtil.color(prefix + plugin.getMessages().getString(
@@ -648,7 +660,20 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        if (plugin.getClanManager().isTagTaken(newTag) && !newTag.equalsIgnoreCase(clan.getTag())) {
+        if (newTag.equalsIgnoreCase(clan.getTag())) {
+            player.sendMessage(ColorUtil.color(prefix + "&cO seu clã já está utilizando esta tag."));
+            return;
+        }
+
+        long remainingCooldown = plugin.getClanManager().getRemainingTagChangeCooldownSeconds(clan);
+        if (remainingCooldown > 0L) {
+            player.sendMessage(ColorUtil.color(prefix + plugin.getMessages().getString("general.cooldown-active",
+                            "&#FF5555Aguarde &e{time} &7para realizar esta ação novamente.")
+                    .replace("{time}", TimeUtil.formatDuration(remainingCooldown))));
+            return;
+        }
+
+        if (plugin.getClanManager().isTagTaken(newTag)) {
             player.sendMessage(ColorUtil.color(prefix + "&cEsta tag já está em uso por outro clã!"));
             return;
         }
@@ -1152,7 +1177,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         if (args.length == 1) {
-            List<String> list = Arrays.asList("criar", "info", "banco", "upgrade", "convidar", "aceitar", "recusar", "sair", "expulsar", "promover", "rebaixar", "lider", "tag", "descricao", "top", "duelo", "desafiar", "alianca", "guerra", "convites", "ff", "fogoamigo", "chat", "evento", "menu");
+            List<String> list = Arrays.asList("criar", "info", "banco", "upgrade", "config", "convidar", "aceitar", "recusar", "sair", "expulsar", "promover", "rebaixar", "lider", "tag", "descricao", "top", "duelo", "desafiar", "alianca", "guerra", "convites", "ff", "fogoamigo", "chat", "evento", "menu");
             return list.stream().filter(s -> s.startsWith(args[0].toLowerCase())).collect(Collectors.toList());
         }
 

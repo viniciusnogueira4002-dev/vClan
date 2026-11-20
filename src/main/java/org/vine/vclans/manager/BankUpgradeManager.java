@@ -27,7 +27,8 @@ public class BankUpgradeManager {
     public static final int TAB_MEMBERS = 2;
     public static final int TAB_COMBAT = 3;
     public static final int TAB_RANKINGS = 4;
-    public static final int TAB_ADMIN = 5;
+    public static final int TAB_SETTINGS = 5;
+    public static final int TAB_ADMIN = 6;
 
     public record TransactionResult(boolean success, String message) {}
 

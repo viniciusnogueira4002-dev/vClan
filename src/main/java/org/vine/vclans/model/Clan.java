@@ -23,6 +23,7 @@ public class Clan {
     private final ClanBank bank;
     private final ClanUpgrades upgrades;
     private volatile int seasonWarPoints;
+    private volatile long lastTagChangeAt;
     private final Set<UUID> allies;
     private final Set<UUID> rivals;
     private final List<ClanLogEntry> auditLogs;
@@ -41,6 +42,7 @@ public class Clan {
         this.bank = new ClanBank();
         this.upgrades = new ClanUpgrades();
         this.seasonWarPoints = 0;
+        this.lastTagChangeAt = 0L;
         this.allies = ConcurrentHashMap.newKeySet();
         this.rivals = ConcurrentHashMap.newKeySet();
         this.auditLogs = new CopyOnWriteArrayList<>();
@@ -126,6 +128,14 @@ public class Clan {
         } catch (ArithmeticException overflow) {
             this.seasonWarPoints = Integer.MAX_VALUE;
         }
+    }
+
+    public long getLastTagChangeAt() {
+        return lastTagChangeAt;
+    }
+
+    public void setLastTagChangeAt(long lastTagChangeAt) {
+        this.lastTagChangeAt = Math.max(0L, lastTagChangeAt);
     }
 
     public Set<UUID> getAllies() {

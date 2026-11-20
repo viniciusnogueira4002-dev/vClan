@@ -8,6 +8,7 @@ import org.vine.vclans.database.DatabaseManager;
 import org.vine.vclans.database.MySQLDatabase;
 import org.vine.vclans.database.SQLiteDatabase;
 import org.vine.vclans.hook.DragonMineZHook;
+import org.vine.vclans.hook.EclypseCoreChatHook;
 import org.vine.vclans.hook.PlaceholderHook;
 import org.vine.vclans.hook.VaultHook;
 import org.vine.vclans.listener.ChatListener;
@@ -49,6 +50,7 @@ public final class VClans extends JavaPlugin {
 
     private VaultHook vaultHook;
     private DragonMineZHook dragonMineZHook;
+    private EclypseCoreChatHook eclypseCoreChatHook;
 
     @Override
     public void onEnable() {
@@ -69,6 +71,7 @@ public final class VClans extends JavaPlugin {
         // Inicializar Hooks
         this.vaultHook = new VaultHook();
         this.dragonMineZHook = new DragonMineZHook(this);
+        this.eclypseCoreChatHook = new EclypseCoreChatHook(this);
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new PlaceholderHook(this, "vclans").register();
             new PlaceholderHook(this, "eclypseclans").register();
@@ -96,6 +99,7 @@ public final class VClans extends JavaPlugin {
         pm.registerEvents(new PlayerListener(this), this);
         pm.registerEvents(new ChatListener(this), this);
         pm.registerEvents(new ClanFarmWarListener(this), this);
+        pm.registerEvents(topDisplayManager, this);
         pm.registerEvents(globalEventManager, this);
 
         // Registrar Comandos
@@ -308,6 +312,10 @@ public final class VClans extends JavaPlugin {
 
     public DragonMineZHook getDragonMineZHook() {
         return dragonMineZHook;
+    }
+
+    public EclypseCoreChatHook getEclypseCoreChatHook() {
+        return eclypseCoreChatHook;
     }
 }
 

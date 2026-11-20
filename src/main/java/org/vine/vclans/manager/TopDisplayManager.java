@@ -1,43 +1,54 @@
 package org.vine.vclans.manager;
 
-import org.vine.vclans.VClans;
-import org.vine.vclans.model.Clan;
-import org.vine.vclans.util.ColorUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.TextDisplay;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.world.EntitiesLoadEvent;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Transformation;
 import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
+import org.vine.vclans.VClans;
+import org.vine.vclans.model.Clan;
+import org.vine.vclans.util.ColorUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-public class TopDisplayManager {
+public class TopDisplayManager implements Listener {
 
     private final VClans plugin;
     private final File topFile;
+    private final NamespacedKey displayTagKey;
+
     private FileConfiguration topConfig;
     private UUID textDisplayUuid;
     private Location displayLocation;
     private BukkitTask updateTask;
+    private volatile int generation = 0;
 
     public TopDisplayManager(VClans plugin) {
         this.plugin = plugin;
         this.topFile = new File(plugin.getDataFolder(), "top.yml");
+        this.displayTagKey = new NamespacedKey(plugin, "vclans_top_display");
         loadConfig();
+        cleanupStaleInLoadedWorlds();
         startUpdateTask();
     }
 
@@ -47,6 +58,7 @@ public class TopDisplayManager {
         }
         topConfig = YamlConfiguration.loadConfiguration(topFile);
 
+        this.textDisplayUuid = null;
         String uuidStr = topConfig.getString("location.entity-uuid", "");
         if (!uuidStr.isEmpty()) {
             try {
@@ -54,6 +66,7 @@ public class TopDisplayManager {
             } catch (IllegalArgumentException ignored) {}
         }
 
+        this.displayLocation = null;
         String worldName = topConfig.getString("location.world", "");
         if (!worldName.isEmpty()) {
             World world = Bukkit.getWorld(worldName);
@@ -89,27 +102,136 @@ public class TopDisplayManager {
     }
 
     public void setLocation(Location location) {
-        if (location != null) {
+        generation++;
+        Location oldLocation = this.displayLocation;
+        removeActiveEntityOnly();
+
+        if (oldLocation != null && oldLocation.getWorld() != null) {
+            try {
+                oldLocation.getChunk().load();
+            } catch (Exception ignored) {}
+            purgeDisplaysNearby(oldLocation, 64);
+        }
+
+        if (location != null && location.getWorld() != null) {
+            try {
+                location.getChunk().load();
+            } catch (Exception ignored) {}
             purgeDisplaysNearby(location, 64);
         }
-        removeDisplay();
+
+        this.textDisplayUuid = null;
         this.displayLocation = location;
         saveConfig();
-        spawnOrUpdateDisplay();
+        spawnOrUpdateDisplay(true);
     }
 
     public void removeDisplay() {
+        generation++;
+        Location oldLocation = this.displayLocation;
+        removeActiveEntityOnly();
+
+        if (oldLocation != null && oldLocation.getWorld() != null) {
+            try {
+                oldLocation.getChunk().load();
+            } catch (Exception ignored) {}
+            purgeDisplaysInWorld(oldLocation.getWorld(), null, 0);
+        }
+
+        this.textDisplayUuid = null;
+        this.displayLocation = null;
+        saveConfig();
+    }
+
+    private void removeActiveEntityOnly() {
         if (textDisplayUuid != null) {
             Entity entity = Bukkit.getEntity(textDisplayUuid);
             if (entity != null) {
                 entity.remove();
             }
         }
-        if (displayLocation != null && displayLocation.getWorld() != null) {
-            purgeDisplaysInWorld(displayLocation.getWorld(), null, 0);
+        if (displayLocation != null && displayLocation.getWorld() != null
+                && displayLocation.getWorld().isChunkLoaded(displayLocation.getBlockX() >> 4, displayLocation.getBlockZ() >> 4)) {
+            purgeStaleDuplicatesNear(displayLocation, 16, null);
         }
-        this.textDisplayUuid = null;
-        saveConfig();
+    }
+
+    private void cleanupStaleInLoadedWorlds() {
+        for (World world : Bukkit.getWorlds()) {
+            for (TextDisplay td : world.getEntitiesByClass(TextDisplay.class)) {
+                if (isManagedOrLegacyDisplay(td)) {
+                    // Remove entidades persistentes antigas para recriar apenas a versão volátil atual
+                    if (td.isPersistent() || !td.getUniqueId().equals(textDisplayUuid)) {
+                        td.remove();
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onEntitiesLoad(EntitiesLoadEvent event) {
+        if (!plugin.isEnabled()) return;
+
+        for (Entity entity : event.getEntities()) {
+            if (isManagedOrLegacyDisplay(entity)) {
+                // Remove qualquer entidade antiga persistente ou com UUID diferente do ativo
+                if (entity.isPersistent() || textDisplayUuid == null || !entity.getUniqueId().equals(textDisplayUuid)) {
+                    entity.remove();
+                }
+            }
+        }
+
+        if (displayLocation != null
+                && displayLocation.getWorld() != null
+                && displayLocation.getWorld().equals(event.getWorld())
+                && (displayLocation.getBlockX() >> 4) == event.getChunk().getX()
+                && (displayLocation.getBlockZ() >> 4) == event.getChunk().getZ()) {
+            if (getTextDisplayEntity() == null) {
+                spawnOrUpdateDisplay(false);
+            }
+        }
+    }
+
+    private boolean isManagedOrLegacyDisplay(Entity entity) {
+        if (entity instanceof TextDisplay td) {
+            if (td.getPersistentDataContainer().has(displayTagKey, PersistentDataType.BYTE)) {
+                return true;
+            }
+            if (textDisplayUuid != null && td.getUniqueId().equals(textDisplayUuid)) {
+                return true;
+            }
+            return isLegacyTextMatch(td.getText());
+        }
+        if (entity instanceof ArmorStand as) {
+            return isLegacyTextMatch(as.getCustomName());
+        }
+        return false;
+    }
+
+    private boolean isLegacyTextMatch(String rawText) {
+        if (rawText == null || rawText.isEmpty()) return false;
+        String plain = ChatColor.stripColor(rawText).toUpperCase();
+        return plain.contains("TOP CLÃS")
+                || plain.contains("TOP CLANS")
+                || plain.contains("REDE ECLYPSE")
+                || plain.contains("VCLANS")
+                || plain.contains("ATUALIZADO A CADA")
+                || plain.contains("USE /CLAN TOP");
+    }
+
+    private void purgeStaleDuplicatesNear(Location center, double radius, UUID keepUuid) {
+        if (center == null || center.getWorld() == null) return;
+        try {
+            for (Entity e : center.getWorld().getNearbyEntities(center, radius, radius, radius)) {
+                if (keepUuid != null && e.getUniqueId().equals(keepUuid)) {
+                    continue;
+                }
+                if (isManagedOrLegacyDisplay(e)) {
+                    e.remove();
+                }
+            }
+        } catch (Exception ignored) {}
     }
 
     public int purgeDisplaysNearby(Location location, double radius) {
@@ -125,39 +247,23 @@ public class TopDisplayManager {
         if (world == null) return 0;
         int count = 0;
         try {
-            java.util.Collection<? extends Entity> entities;
-            if (center != null && radius > 0) {
-                entities = world.getNearbyEntities(center, radius, radius, radius);
-            } else {
-                entities = world.getEntitiesByClass(TextDisplay.class);
-            }
+            Collection<? extends Entity> entities = (center != null && radius > 0)
+                    ? world.getNearbyEntities(center, radius, radius, radius)
+                    : world.getEntitiesByClass(TextDisplay.class);
             for (Entity e : entities) {
-                if (e instanceof TextDisplay td) {
-                    String text = td.getText();
-                    if (text != null) {
-                        String plain = ChatColor.stripColor(text).toUpperCase();
-                        if (plain.contains("ECLYPSE") || plain.contains("TOP") || plain.contains("CL") || plain.contains("VCLANS") || plain.contains("RANKING") || plain.contains("STAFF") || plain.contains("DUELOS") || plain.contains("GUERRAS") || plain.contains("ATUALIZADO")) {
-                            td.remove();
-                            count++;
-                        }
-                    }
+                if (e instanceof TextDisplay && isManagedOrLegacyDisplay(e)) {
+                    e.remove();
+                    count++;
                 }
             }
 
-            // Também limpa ArmorStands se por acaso algum plugin de holograma antigo criou
-            java.util.Collection<? extends Entity> stands = (center != null && radius > 0) 
-                    ? world.getNearbyEntities(center, radius, radius, radius) 
+            Collection<? extends Entity> stands = (center != null && radius > 0)
+                    ? world.getNearbyEntities(center, radius, radius, radius)
                     : world.getEntitiesByClass(ArmorStand.class);
             for (Entity e : stands) {
-                if (e instanceof ArmorStand as) {
-                    String name = as.getCustomName();
-                    if (name != null) {
-                        String plain = ChatColor.stripColor(name).toUpperCase();
-                        if (plain.contains("ECLYPSE") || plain.contains("TOP") || plain.contains("VCLANS") || plain.contains("RANKING") || plain.contains("STAFF")) {
-                            as.remove();
-                            count++;
-                        }
-                    }
+                if (e instanceof ArmorStand && isManagedOrLegacyDisplay(e)) {
+                    e.remove();
+                    count++;
                 }
             }
         } catch (Exception ignored) {}
@@ -168,32 +274,67 @@ public class TopDisplayManager {
         if (updateTask != null) {
             updateTask.cancel();
         }
-        long intervalSeconds = topConfig.getLong("top-display.update-interval-seconds", 300);
-        this.updateTask = Bukkit.getScheduler().runTaskTimer(plugin, this::spawnOrUpdateDisplay, 100L, intervalSeconds * 20L);
+        long intervalSeconds = Math.max(30L, topConfig.getLong("top-display.update-interval-seconds", 300));
+        this.updateTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> spawnOrUpdateDisplay(false), 100L, intervalSeconds * 20L);
     }
 
     public void spawnOrUpdateDisplay() {
-        if (displayLocation == null || displayLocation.getWorld() == null) {
+        spawnOrUpdateDisplay(false);
+    }
+
+    private void spawnOrUpdateDisplay(boolean forceChunkLoad) {
+        if (!plugin.isEnabled() || displayLocation == null || displayLocation.getWorld() == null) {
+            return;
+        }
+        if (!topConfig.getBoolean("display.enabled", true)) {
             return;
         }
 
-        loadConfig();
+        final Location targetLoc = displayLocation.clone();
+        final World world = targetLoc.getWorld();
+        if (world == null) return;
 
-        // Buscar top clãs assincronamente e atualizar o display na main thread
+        int chunkX = targetLoc.getBlockX() >> 4;
+        int chunkZ = targetLoc.getBlockZ() >> 4;
+        if (!forceChunkLoad && !world.isChunkLoaded(chunkX, chunkZ)) {
+            return;
+        }
+        if (forceChunkLoad && !world.isChunkLoaded(chunkX, chunkZ)) {
+            targetLoc.getChunk().load();
+        }
+
+        final int opGen = this.generation;
+
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             List<Clan> topClans = plugin.getClanManager().getTopClansByPoints(10);
             String formattedText = buildDisplayText(topClans);
 
             Bukkit.getScheduler().runTask(plugin, () -> {
+                if (!plugin.isEnabled() || opGen != this.generation || this.displayLocation == null) {
+                    return;
+                }
+                if (!world.isChunkLoaded(chunkX, chunkZ)) {
+                    return;
+                }
+
                 TextDisplay display = getTextDisplayEntity();
+                if (display != null && display.isPersistent()) {
+                    // Substitui entidade persistente legada por uma versão volátil (setPersistent(false))
+                    display.remove();
+                    display = null;
+                }
+
+                purgeStaleDuplicatesNear(targetLoc, 16, display != null ? display.getUniqueId() : null);
+
                 if (display == null) {
-                    display = displayLocation.getWorld().spawn(displayLocation, TextDisplay.class, ent -> {
+                    display = world.spawn(targetLoc, TextDisplay.class, ent -> {
+                        ent.setPersistent(false);
+                        ent.getPersistentDataContainer().set(displayTagKey, PersistentDataType.BYTE, (byte) 1);
                         ent.setBillboard(Display.Billboard.CENTER);
                         ent.setDefaultBackground(false);
-                        ent.setBackgroundColor(Color.fromARGB(180, 15, 15, 20)); // Fundo anime RPG translúcido
+                        ent.setBackgroundColor(Color.fromARGB(180, 15, 15, 20));
                         ent.setShadowed(true);
                         ent.setAlignment(TextDisplay.TextAlignment.CENTER);
-                        // Escala HD ampliada
                         ent.setTransformation(new Transformation(
                                 new Vector3f(0f, 0f, 0f),
                                 new AxisAngle4f(),
@@ -203,6 +344,9 @@ public class TopDisplayManager {
                     });
                     this.textDisplayUuid = display.getUniqueId();
                     saveConfig();
+                } else {
+                    display.setPersistent(false);
+                    display.getPersistentDataContainer().set(displayTagKey, PersistentDataType.BYTE, (byte) 1);
                 }
 
                 display.setText(ColorUtil.color(formattedText));
@@ -224,11 +368,9 @@ public class TopDisplayManager {
     public String buildDisplayText(List<Clan> topClans) {
         List<String> lines = new ArrayList<>();
 
-        // Cabeçalho
         List<String> header = topConfig.getStringList("display.header");
         lines.addAll(header);
 
-        // Top 1, 2, 3 e outros
         int maxEntries = topConfig.getInt("display.max-entries", 3);
         for (int i = 0; i < maxEntries; i++) {
             int rank = i + 1;
@@ -276,7 +418,6 @@ public class TopDisplayManager {
             }
         }
 
-        // Rodapé
         List<String> footer = topConfig.getStringList("display.footer");
         lines.addAll(footer);
 
@@ -284,9 +425,11 @@ public class TopDisplayManager {
     }
 
     public void cleanup() {
+        generation++;
         if (updateTask != null) {
             updateTask.cancel();
+            updateTask = null;
         }
+        removeActiveEntityOnly();
     }
 }
-

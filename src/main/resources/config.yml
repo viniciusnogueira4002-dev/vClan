@@ -21,6 +21,7 @@ clan:
     max-length: 4
     regex: '^[a-zA-Z0-9]+$'
     default-color: '&#FF5555'
+    change-cooldown-seconds: 86400 # Cooldown de 1 dia (24h) para alterar a tag do clã
     disallowed:
       - 'ADM'
       - 'MOD'
@@ -70,9 +71,9 @@ clan-chat:
   enabled: true
   # Formato exclusivo para o chat de membros do clã
   # Placeholders: {clan}, {tag}, {color}, {role}, {role_prefix}, {player}, {message}
-  format: "&8[&bClã&8] &r{role_prefix}&f{player}&8: {message}"
-  # Cor padrão da mensagem (usuário pediu &b como cor default)
-  default-message-color: "&b"
+  format: "&8[&#A78BFA&lClã&8] &r{role_prefix}&f{player}&8: {message}"
+  # Cor padrão da mensagem (alinhada com a paleta roxa do EclypseCore)
+  default-message-color: "&#DDD6FE"
   # Se 'true', jogadores com permissão vclans.chat.color podem usar cores customizadas
   allow-colors: true
 
