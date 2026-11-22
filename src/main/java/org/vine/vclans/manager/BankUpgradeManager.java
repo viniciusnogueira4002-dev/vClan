@@ -178,6 +178,17 @@ public class BankUpgradeManager {
             member.addDonatedTp(amount);
         }
         clan.addLog(player.getUniqueId(), player.getName() + " depositou " + amount + " TP no banco");
+        if (plugin.getDiscordWebhookHook() != null) {
+            plugin.getDiscordWebhookHook().logBankDeposit(
+                    clan.getName(),
+                    clan.getTag(),
+                    player.getName(),
+                    player.getUniqueId(),
+                    "TP",
+                    amount + " TP",
+                    clan.getBank().getTp() + " TP"
+            );
+        }
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             plugin.getRepository().saveEconomy(clan);
@@ -232,7 +243,19 @@ public class BankUpgradeManager {
         if (member != null) {
             member.addDonatedMoney(amount);
         }
-        clan.addLog(player.getUniqueId(), player.getName() + " depositou $" + String.format(java.util.Locale.US, "%.2f", amount) + " no banco");
+        String formattedMoney = String.format(java.util.Locale.US, "%.2f", amount);
+        clan.addLog(player.getUniqueId(), player.getName() + " depositou $" + formattedMoney + " no banco");
+        if (plugin.getDiscordWebhookHook() != null) {
+            plugin.getDiscordWebhookHook().logBankDeposit(
+                    clan.getName(),
+                    clan.getTag(),
+                    player.getName(),
+                    player.getUniqueId(),
+                    "Money",
+                    "$" + formattedMoney,
+                    "$" + String.format(java.util.Locale.US, "%.2f", clan.getBank().getMoney())
+            );
+        }
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             plugin.getRepository().saveEconomy(clan);
@@ -282,6 +305,27 @@ public class BankUpgradeManager {
 
         clan.getUpgrades().setLevel(type, nextLevel);
         clan.addLog(player.getUniqueId(), player.getName() + " evoluiu " + type.getDisplayName() + " para Nv." + nextLevel);
+        if (plugin.getDiscordWebhookHook() != null) {
+            double newBonus = getBonusValue(type, nextLevel);
+            String bonusSummary = (type == UpgradeType.MEMBER_LIMIT)
+                    ? "+" + (int) Math.floor(newBonus) + " vagas (" + getMaxMembers(clan) + " máx)"
+                    : "+" + Math.round(newBonus) + "%";
+            String costFormatted = costTp + " TP + $" + String.format(java.util.Locale.US, "%.2f", costMoney);
+            String remainingFormatted = clan.getBank().getTp() + " TP | $"
+                    + String.format(java.util.Locale.US, "%.2f", clan.getBank().getMoney());
+            plugin.getDiscordWebhookHook().logBankUpgrade(
+                    clan.getName(),
+                    clan.getTag(),
+                    player.getName(),
+                    player.getUniqueId(),
+                    type.getDisplayName(),
+                    currentLevel,
+                    nextLevel,
+                    bonusSummary,
+                    costFormatted,
+                    remainingFormatted
+            );
+        }
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> plugin.getRepository().saveEconomy(clan));
 

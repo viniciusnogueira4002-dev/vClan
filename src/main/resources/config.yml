@@ -76,6 +76,15 @@ clan-chat:
   default-message-color: "&#DDD6FE"
   # Se 'true', jogadores com permissão vclans.chat.color podem usar cores customizadas
   allow-colors: true
+  # Se 'true', registra as mensagens do chat de clã no console do servidor
+  log-to-console: false
+  # Envio assíncrono de logs do chat de clã para um Webhook do Discord
+  discord-webhook:
+    enabled: false
+    url: ""
+    username: "vClans • Chat de Clã"
+    avatar-url: ""
+    use-embed: true
 
 # Tag na Scoreboard e Nametag (Acima da Cabeça do Jogador)
 nametag:
@@ -116,6 +125,13 @@ bank:
   transaction-cooldown-ms: 500
   max-deposit-tp-per-tx: 1000000000
   max-deposit-money-per-tx: 1000000000.0
+  # Envio assíncrono de logs de depósitos (TP/Money) e upgrades dos bônus do clã para um Webhook do Discord
+  discord-webhook:
+    enabled: false
+    url: ""
+    username: "vClans • Banco & Upgrades"
+    avatar-url: ""
+    use-embed: true
 
 # Upgrades do Clã (Comprados com TP + Money do Banco)
 upgrades:

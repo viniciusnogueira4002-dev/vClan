@@ -7,6 +7,7 @@ import org.vine.vclans.database.ClanRepository;
 import org.vine.vclans.database.DatabaseManager;
 import org.vine.vclans.database.MySQLDatabase;
 import org.vine.vclans.database.SQLiteDatabase;
+import org.vine.vclans.hook.DiscordWebhookHook;
 import org.vine.vclans.hook.DragonMineZHook;
 import org.vine.vclans.hook.EclypseCoreChatHook;
 import org.vine.vclans.hook.PlaceholderHook;
@@ -51,6 +52,7 @@ public final class VClans extends JavaPlugin {
     private VaultHook vaultHook;
     private DragonMineZHook dragonMineZHook;
     private EclypseCoreChatHook eclypseCoreChatHook;
+    private DiscordWebhookHook discordWebhookHook;
 
     @Override
     public void onEnable() {
@@ -72,6 +74,7 @@ public final class VClans extends JavaPlugin {
         this.vaultHook = new VaultHook();
         this.dragonMineZHook = new DragonMineZHook(this);
         this.eclypseCoreChatHook = new EclypseCoreChatHook(this);
+        this.discordWebhookHook = new DiscordWebhookHook(this);
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new PlaceholderHook(this, "vclans").register();
             new PlaceholderHook(this, "eclypseclans").register();
@@ -168,6 +171,10 @@ public final class VClans extends JavaPlugin {
             dragonMineZHook.cleanup();
         }
 
+        if (discordWebhookHook != null) {
+            discordWebhookHook.shutdown();
+        }
+
         if (clanManager != null) {
             clanManager.flushAll();
         }
@@ -244,6 +251,9 @@ public final class VClans extends JavaPlugin {
         if (seasonWarManager != null) {
             seasonWarManager.loadConfig();
         }
+        if (discordWebhookHook != null) {
+            discordWebhookHook.reloadConfig();
+        }
     }
 
     public static VClans getInstance() {
@@ -316,6 +326,10 @@ public final class VClans extends JavaPlugin {
 
     public EclypseCoreChatHook getEclypseCoreChatHook() {
         return eclypseCoreChatHook;
+    }
+
+    public DiscordWebhookHook getDiscordWebhookHook() {
+        return discordWebhookHook;
     }
 }
 

@@ -500,7 +500,19 @@ public class ClanManager {
                     "&#FF5555[Clã] Ninguém do clã online no momento.")));
         }
 
-        plugin.getLogger().info("[Clan Chat - " + clan.getTag() + "] " + sender.getName() + ": " + cleanRaw);
+        if (plugin.getConfig().getBoolean("clan-chat.log-to-console", false)) {
+            plugin.getLogger().info("[Clan Chat - " + clan.getTag() + "] " + sender.getName() + ": " + cleanRaw);
+        }
+        if (plugin.getDiscordWebhookHook() != null) {
+            plugin.getDiscordWebhookHook().logClanChat(
+                    clan.getName(),
+                    clan.getTag(),
+                    role.getDefaultDisplayName(),
+                    sender.getName(),
+                    sender.getUniqueId(),
+                    cleanRaw
+            );
+        }
     }
 
     private void sendToClanTab(Player target, String coloredMessage) {
