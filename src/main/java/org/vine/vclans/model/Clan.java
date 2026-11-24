@@ -24,6 +24,7 @@ public class Clan {
     private final ClanUpgrades upgrades;
     private volatile int seasonWarPoints;
     private volatile long lastTagChangeAt;
+    private volatile String tagStyle = "";
     private final Set<UUID> allies;
     private final Set<UUID> rivals;
     private final List<ClanLogEntry> auditLogs;
@@ -136,6 +137,36 @@ public class Clan {
 
     public void setLastTagChangeAt(long lastTagChangeAt) {
         this.lastTagChangeAt = Math.max(0L, lastTagChangeAt);
+    }
+
+    public String getTagStyle() {
+        return tagStyle;
+    }
+
+    public void setTagStyle(String tagStyle) {
+        if (tagStyle == null) {
+            this.tagStyle = "";
+            return;
+        }
+        String trimmed = tagStyle.trim();
+        this.tagStyle = trimmed.length() > 64 ? trimmed.substring(0, 64) : trimmed;
+    }
+
+    /**
+     * Calcula o nível da placa customizada (1 a 6) com base nos upgrades e pontos do clã.
+     */
+    public int getBadgeTier() {
+        int totalUpgrades = upgrades.getTpMultiplierLevel()
+                + upgrades.getMoneyMultiplierLevel()
+                + upgrades.getMemberLimitLevel()
+                + upgrades.getWarMultiplierLevel();
+        int pts = stats.getPoints();
+        if (totalUpgrades >= 16 || pts >= 2500) return 6;
+        if (totalUpgrades >= 12 || pts >= 1200) return 5;
+        if (totalUpgrades >= 8 || pts >= 600) return 4;
+        if (totalUpgrades >= 5 || pts >= 300) return 3;
+        if (totalUpgrades >= 2 || pts >= 100) return 2;
+        return 1;
     }
 
     public Set<UUID> getAllies() {

@@ -69,7 +69,7 @@ public class ScoreboardManager {
 
         Clan clan = plugin.getClanManager().getClanByPlayer(player);
         String prefix = "";
-        if (clan != null) {
+        if (clan != null && (clan.getTagStyle().isEmpty() || !plugin.getEclypseCoreBadgeHook().isAvailable())) {
             String prefixFormat = plugin.getConfig().getString("nametag.prefix-format", "&8[{color}{tag}&8] &r")
                     .replace("{tag}", clan.getTag())
                     .replace("{color}", clan.getTagColor());

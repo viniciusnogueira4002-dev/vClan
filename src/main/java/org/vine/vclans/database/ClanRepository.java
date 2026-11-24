@@ -38,6 +38,7 @@ public class ClanRepository {
                 clan.getSettings().setOpenJoin(open);
                 clan.getSettings().setNotifications(notif);
                 clan.setLastTagChangeAt(getLongSafe(rs, "last_tag_change"));
+                clan.setTagStyle(getStringSafe(rs, "tag_style"));
                 clans.put(id, clan);
             }
         } catch (SQLException e) {
@@ -149,8 +150,8 @@ public class ClanRepository {
 
     public void saveClan(Clan clan) {
         String sql = """
-            INSERT INTO eclypse_clans (id, name, tag, tag_color, description, leader_uuid, friendly_fire, open_join, notifications, created_at, last_tag_change)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO eclypse_clans (id, name, tag, tag_color, description, leader_uuid, friendly_fire, open_join, notifications, created_at, last_tag_change, tag_style)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 name = excluded.name,
                 tag = excluded.tag,
@@ -160,7 +161,8 @@ public class ClanRepository {
                 friendly_fire = excluded.friendly_fire,
                 open_join = excluded.open_join,
                 notifications = excluded.notifications,
-                last_tag_change = excluded.last_tag_change;
+                last_tag_change = excluded.last_tag_change,
+                tag_style = excluded.tag_style;
         """;
         try (Connection conn = db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -175,6 +177,7 @@ public class ClanRepository {
             ps.setBoolean(9, clan.getSettings().isNotifications());
             ps.setLong(10, clan.getCreatedAt().toEpochMilli());
             ps.setLong(11, clan.getLastTagChangeAt());
+            ps.setString(12, clan.getTagStyle());
             ps.executeUpdate();
         } catch (SQLException e) {
             // Em caso de MySQL sem ON CONFLICT
@@ -186,7 +189,7 @@ public class ClanRepository {
     }
 
     private void saveClanFallback(Clan clan) {
-        String update = "UPDATE eclypse_clans SET name=?, tag=?, tag_color=?, description=?, leader_uuid=?, friendly_fire=?, open_join=?, notifications=?, last_tag_change=? WHERE id=?";
+        String update = "UPDATE eclypse_clans SET name=?, tag=?, tag_color=?, description=?, leader_uuid=?, friendly_fire=?, open_join=?, notifications=?, last_tag_change=?, tag_style=? WHERE id=?";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(update)) {
             ps.setString(1, clan.getName());
             ps.setString(2, clan.getTag());
@@ -197,10 +200,11 @@ public class ClanRepository {
             ps.setBoolean(7, clan.getSettings().isOpenJoin());
             ps.setBoolean(8, clan.getSettings().isNotifications());
             ps.setLong(9, clan.getLastTagChangeAt());
-            ps.setString(10, clan.getId().toString());
+            ps.setString(10, clan.getTagStyle());
+            ps.setString(11, clan.getId().toString());
             int rows = ps.executeUpdate();
             if (rows == 0) {
-                String insert = "INSERT INTO eclypse_clans (id, name, tag, tag_color, description, leader_uuid, friendly_fire, open_join, notifications, created_at, last_tag_change) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                String insert = "INSERT INTO eclypse_clans (id, name, tag, tag_color, description, leader_uuid, friendly_fire, open_join, notifications, created_at, last_tag_change, tag_style) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                 try (PreparedStatement ins = conn.prepareStatement(insert)) {
                     ins.setString(1, clan.getId().toString());
                     ins.setString(2, clan.getName());
@@ -213,6 +217,7 @@ public class ClanRepository {
                     ins.setBoolean(9, clan.getSettings().isNotifications());
                     ins.setLong(10, clan.getCreatedAt().toEpochMilli());
                     ins.setLong(11, clan.getLastTagChangeAt());
+                    ins.setString(12, clan.getTagStyle());
                     ins.executeUpdate();
                 }
             }
@@ -611,6 +616,15 @@ public class ClanRepository {
 
     private int getIntSafe(ResultSet rs, String col) {
         try { return rs.getInt(col); } catch (SQLException ignored) { return 0; }
+    }
+
+    private String getStringSafe(ResultSet rs, String col) {
+        try {
+            String value = rs.getString(col);
+            return value != null ? value : "";
+        } catch (SQLException ignored) {
+            return "";
+        }
     }
 }
 

@@ -24,11 +24,13 @@ public abstract class DatabaseManager {
                     open_join BOOLEAN DEFAULT 0,
                     notifications BOOLEAN DEFAULT 1,
                     created_at BIGINT NOT NULL,
-                    last_tag_change BIGINT DEFAULT 0
+                    last_tag_change BIGINT DEFAULT 0,
+                    tag_style VARCHAR(64) DEFAULT ''
                 );
             """);
 
             try { stmt.executeUpdate("ALTER TABLE eclypse_clans ADD COLUMN last_tag_change BIGINT DEFAULT 0;"); } catch (SQLException ignored) {}
+            try { stmt.executeUpdate("ALTER TABLE eclypse_clans ADD COLUMN tag_style VARCHAR(64) DEFAULT '';"); } catch (SQLException ignored) {}
 
             // Tabela de Estatísticas
             stmt.executeUpdate("""

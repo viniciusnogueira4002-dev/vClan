@@ -41,9 +41,13 @@ public class ChatListener implements Listener {
             ClanMember member = clan.getMember(player.getUniqueId());
             ClanRole role = member != null ? member.getRole() : ClanRole.MEMBER;
             rolePrefix = role.getDefaultPrefix();
-            clanTag = plugin.getConfig().getString("chat.clan-tag-format", "&8[{color}{tag}&8] ")
-                    .replace("{color}", clan.getTagColor())
-                    .replace("{tag}", clan.getTag());
+            if (!clan.getTagStyle().isEmpty()) {
+                clanTag = org.vine.vclans.hook.EclypseCoreBadgeHook.encodeChatBadge(clan.getTag(), clan.getTagStyle()) + " ";
+            } else {
+                clanTag = plugin.getConfig().getString("chat.clan-tag-format", "&8[{color}{tag}&8] ")
+                        .replace("{color}", clan.getTagColor())
+                        .replace("{tag}", clan.getTag());
+            }
         }
 
         String format = plugin.getConfig().getString("chat.format", "{role_prefix}{clan_tag}&f%1$s: &7%2$s")

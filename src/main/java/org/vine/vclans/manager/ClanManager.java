@@ -143,6 +143,7 @@ public class ClanManager {
         });
 
         plugin.getScoreboardManager().updatePlayer(leader);
+        plugin.getEclypseCoreBadgeHook().notifyPlayerBadge(leader.getUniqueId(), clan.getTag(), clan.getTagStyle());
         invalidateTopCache();
         return clan;
     }
@@ -154,13 +155,15 @@ public class ClanManager {
         clanIdByTag.remove(clan.getTag().toLowerCase());
         invalidateTopCache();
 
-        for (UUID memberUuid : clan.getMembers().keySet()) {
+        Set<UUID> oldMembers = new HashSet<>(clan.getMembers().keySet());
+        for (UUID memberUuid : oldMembers) {
             playerClanMap.remove(memberUuid);
             Player p = Bukkit.getPlayer(memberUuid);
             if (p != null) {
                 plugin.getScoreboardManager().updatePlayer(p);
             }
         }
+        plugin.getEclypseCoreBadgeHook().notifyClanUpdated(oldMembers, "", "");
 
         // Remover de alianças
         for (Clan other : clansById.values()) {
@@ -197,6 +200,7 @@ public class ClanManager {
         });
 
         plugin.getScoreboardManager().updatePlayer(player);
+        plugin.getEclypseCoreBadgeHook().notifyPlayerBadge(player.getUniqueId(), clan.getTag(), clan.getTagStyle());
 
         // Anúncio global de recrutamento para todo o servidor
         String prefix = plugin.getMessages().getString("prefix", "");
@@ -247,6 +251,8 @@ public class ClanManager {
                     .replace("{actor}", actorName);
             Bukkit.broadcastMessage(ColorUtil.color(prefix + broadcast));
         }
+
+        plugin.getEclypseCoreBadgeHook().notifyPlayerBadge(playerUuid, "", "");
 
         Player p = Bukkit.getPlayer(playerUuid);
         if (p != null) {
@@ -322,6 +328,7 @@ public class ClanManager {
         for (Player p : clan.getOnlinePlayers()) {
             plugin.getScoreboardManager().updatePlayer(p);
         }
+        plugin.getEclypseCoreBadgeHook().notifyClanUpdated(clan.getMembers().keySet(), clan.getTag(), clan.getTagStyle());
     }
 
     public long getRemainingTagChangeCooldownSeconds(Clan clan) {
@@ -343,6 +350,17 @@ public class ClanManager {
         for (Player p : clan.getOnlinePlayers()) {
             plugin.getScoreboardManager().updatePlayer(p);
         }
+        plugin.getEclypseCoreBadgeHook().notifyClanUpdated(clan.getMembers().keySet(), clan.getTag(), clan.getTagStyle());
+    }
+
+    public void setTagStyle(Clan clan, String newStyle) {
+        clan.setTagStyle(newStyle);
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> repository.saveClan(clan));
+
+        for (Player p : clan.getOnlinePlayers()) {
+            plugin.getScoreboardManager().updatePlayer(p);
+        }
+        plugin.getEclypseCoreBadgeHook().notifyClanUpdated(clan.getMembers().keySet(), clan.getTag(), clan.getTagStyle());
     }
 
     public void setDescription(Clan clan, String newDesc) {

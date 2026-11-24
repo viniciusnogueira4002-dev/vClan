@@ -9,6 +9,7 @@ import org.vine.vclans.database.MySQLDatabase;
 import org.vine.vclans.database.SQLiteDatabase;
 import org.vine.vclans.hook.DiscordWebhookHook;
 import org.vine.vclans.hook.DragonMineZHook;
+import org.vine.vclans.hook.EclypseCoreBadgeHook;
 import org.vine.vclans.hook.EclypseCoreChatHook;
 import org.vine.vclans.hook.PlaceholderHook;
 import org.vine.vclans.hook.VaultHook;
@@ -52,6 +53,7 @@ public final class VClans extends JavaPlugin {
     private VaultHook vaultHook;
     private DragonMineZHook dragonMineZHook;
     private EclypseCoreChatHook eclypseCoreChatHook;
+    private EclypseCoreBadgeHook eclypseCoreBadgeHook;
     private DiscordWebhookHook discordWebhookHook;
 
     @Override
@@ -74,6 +76,7 @@ public final class VClans extends JavaPlugin {
         this.vaultHook = new VaultHook();
         this.dragonMineZHook = new DragonMineZHook(this);
         this.eclypseCoreChatHook = new EclypseCoreChatHook(this);
+        this.eclypseCoreBadgeHook = new EclypseCoreBadgeHook(this);
         this.discordWebhookHook = new DiscordWebhookHook(this);
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new PlaceholderHook(this, "vclans").register();
@@ -326,6 +329,10 @@ public final class VClans extends JavaPlugin {
 
     public EclypseCoreChatHook getEclypseCoreChatHook() {
         return eclypseCoreChatHook;
+    }
+
+    public EclypseCoreBadgeHook getEclypseCoreBadgeHook() {
+        return eclypseCoreBadgeHook;
     }
 
     public DiscordWebhookHook getDiscordWebhookHook() {

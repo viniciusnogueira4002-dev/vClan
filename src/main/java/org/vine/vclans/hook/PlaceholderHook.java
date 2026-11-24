@@ -103,9 +103,9 @@ public class PlaceholderHook extends PlaceholderExpansion {
             return switch (params.toLowerCase()) {
                 case "has_clan" -> "false";
                 case "prefix" -> plugin.getConfig().getString("chat.no-clan-tag", "");
-                case "tag", "tag_colored", "tag_formatted", "chat_prefix", "nametag", "head", "tag_head", "abovename", "sigla", "sigla_colorida", "name", "role", "role_prefix", "leader" -> "";
+                case "tag", "tag_colored", "tag_formatted", "chat_prefix", "nametag", "head", "tag_head", "abovename", "sigla", "sigla_colorida", "name", "role", "role_prefix", "leader", "badge" -> "";
                 case "points", "kills", "deaths", "members_count", "duel_wins", "duel_losses", "war_wins", "war_losses",
-                        "bank_tp", "season_war_points" -> "0";
+                        "bank_tp", "season_war_points", "badge_tier" -> "0";
                 case "bank_money" -> "0.00";
                 case "mult_tp", "mult_money", "mult_war" -> "0%";
                 case "kdr" -> "0.00";
@@ -118,7 +118,13 @@ public class PlaceholderHook extends PlaceholderExpansion {
         ClanMember leader = clan.getMember(clan.getLeaderUuid());
         String leaderName = leader != null ? leader.getLastKnownName() : "Desconhecido";
 
-        String tagPrefix = org.vine.vclans.util.ColorUtil.color(
+        String encodedBadge = !clan.getTagStyle().isEmpty()
+                ? EclypseCoreBadgeHook.encodeChatBadge(clan.getTag(), clan.getTagStyle())
+                : "";
+
+        String tagPrefix = !encodedBadge.isEmpty()
+                ? (encodedBadge + " ")
+                : org.vine.vclans.util.ColorUtil.color(
                 plugin.getConfig().getString("chat.clan-tag-format", "&8[{color}{tag}&8] ")
                         .replace("{color}", clan.getTagColor())
                         .replace("{tag}", clan.getTag())
@@ -137,6 +143,8 @@ public class PlaceholderHook extends PlaceholderExpansion {
             case "tag", "sigla" -> clan.getTag();
             case "tag_colored", "sigla_colorida" -> clan.getColoredTag();
             case "tag_formatted" -> clan.getFormattedTag();
+            case "badge" -> encodedBadge;
+            case "badge_tier" -> String.valueOf(clan.getBadgeTier());
             case "prefix" -> tagPrefix;
             case "nametag", "head", "tag_head", "abovename" -> nametagPrefix;
             case "chat_prefix" -> (role.getDefaultPrefix().isEmpty() ? "" : role.getDefaultPrefix() + " ") + tagPrefix;
