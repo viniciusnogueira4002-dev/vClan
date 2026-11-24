@@ -103,7 +103,7 @@ public class PlaceholderHook extends PlaceholderExpansion {
             return switch (params.toLowerCase()) {
                 case "has_clan" -> "false";
                 case "prefix" -> plugin.getConfig().getString("chat.no-clan-tag", "");
-                case "tag", "tag_colored", "tag_formatted", "chat_prefix", "nametag", "head", "tag_head", "abovename", "sigla", "sigla_colorida", "name", "role", "role_prefix", "leader", "badge" -> "";
+                case "tag", "tag_colored", "tag_formatted", "chat_prefix", "nametag", "head", "tag_head", "abovename", "sigla", "sigla_colorida", "name", "role", "role_prefix", "leader", "badge", "badge_rank" -> "";
                 case "points", "kills", "deaths", "members_count", "duel_wins", "duel_losses", "war_wins", "war_losses",
                         "bank_tp", "season_war_points", "badge_tier" -> "0";
                 case "bank_money" -> "0.00";
@@ -145,6 +145,7 @@ public class PlaceholderHook extends PlaceholderExpansion {
             case "tag_formatted" -> clan.getFormattedTag();
             case "badge" -> encodedBadge;
             case "badge_tier" -> String.valueOf(clan.getBadgeTier());
+            case "badge_rank" -> clan.getBadgeRankName();
             case "prefix" -> tagPrefix;
             case "nametag", "head", "tag_head", "abovename" -> nametagPrefix;
             case "chat_prefix" -> (role.getDefaultPrefix().isEmpty() ? "" : role.getDefaultPrefix() + " ") + tagPrefix;

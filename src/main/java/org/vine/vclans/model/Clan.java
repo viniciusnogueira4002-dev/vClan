@@ -153,7 +153,7 @@ public class Clan {
     }
 
     /**
-     * Calcula o nível da placa customizada (1 a 6) com base nos upgrades e pontos do clã.
+     * Calcula a patente da placa customizada da Rede Eclypse (1 a 5) com base nos upgrades, pontos e vitórias de guerra.
      */
     public int getBadgeTier() {
         int totalUpgrades = upgrades.getTpMultiplierLevel()
@@ -161,12 +161,22 @@ public class Clan {
                 + upgrades.getMemberLimitLevel()
                 + upgrades.getWarMultiplierLevel();
         int pts = stats.getPoints();
-        if (totalUpgrades >= 16 || pts >= 2500) return 6;
-        if (totalUpgrades >= 12 || pts >= 1200) return 5;
-        if (totalUpgrades >= 8 || pts >= 600) return 4;
-        if (totalUpgrades >= 5 || pts >= 300) return 3;
-        if (totalUpgrades >= 2 || pts >= 100) return 2;
+        int warWins = stats.getWarWins();
+        if (totalUpgrades >= 14 || pts >= 1800 || warWins >= 7) return 5;
+        if (totalUpgrades >= 9 || pts >= 700 || warWins >= 4) return 4;
+        if (totalUpgrades >= 5 || pts >= 300 || warWins >= 2) return 3;
+        if (totalUpgrades >= 2 || pts >= 100 || warWins >= 1) return 2;
         return 1;
+    }
+
+    public String getBadgeRankName() {
+        return switch (getBadgeTier()) {
+            case 5 -> "Lendário";
+            case 4 -> "Supremo";
+            case 3 -> "Elite";
+            case 2 -> "Veterano";
+            default -> "Iniciante";
+        };
     }
 
     public Set<UUID> getAllies() {
