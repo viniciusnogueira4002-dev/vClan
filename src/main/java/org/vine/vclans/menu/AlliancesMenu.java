@@ -50,9 +50,11 @@ public class AlliancesMenu extends Menu {
                     new ConfirmationMenu(player, "Desfazer aliança com " + allyClan.getName(), () -> {
                         clan.getAllies().remove(allyClan.getId());
                         allyClan.getAllies().remove(clan.getId());
+                        java.util.Set<UUID> alliesSnapshotA = new java.util.HashSet<>(clan.getAllies());
+                        java.util.Set<UUID> alliesSnapshotB = new java.util.HashSet<>(allyClan.getAllies());
                         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                            plugin.getRepository().saveAllies(clan.getId(), clan.getAllies());
-                            plugin.getRepository().saveAllies(allyClan.getId(), allyClan.getAllies());
+                            plugin.getRepository().saveAllies(clan.getId(), alliesSnapshotA);
+                            plugin.getRepository().saveAllies(allyClan.getId(), alliesSnapshotB);
                         });
 
                         String msg = plugin.getMessages().getString("prefix", "") +

@@ -27,6 +27,8 @@ public class ClanManager {
 
     // Cooldown para entrar em outro clã após sair
     private final Map<UUID, Instant> leaveCooldowns = new ConcurrentHashMap<>();
+    // Propostas de aliança pendentes (fromClanId:toClanId -> expiração)
+    private final Map<String, Instant> pendingAllianceProposals = new ConcurrentHashMap<>();
 
     // Caches de Top Ranking para economizar CPU e evitar alocações de streams e GC
     private volatile List<Clan> cachedTopPoints = null;
@@ -47,10 +49,11 @@ public class ClanManager {
     }
 
     private void startCleanupTask() {
-        // Limpar cooldowns de saída expirados a cada 5 minutos
+        // Limpar cooldowns de saída e propostas de aliança expiradas a cada 5 minutos
         Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             Instant now = Instant.now();
             leaveCooldowns.entrySet().removeIf(entry -> now.isAfter(entry.getValue()));
+            pendingAllianceProposals.entrySet().removeIf(entry -> now.isAfter(entry.getValue()));
         }, 6000L, 6000L);
     }
 
@@ -67,6 +70,7 @@ public class ClanManager {
         clanIdByTag.clear();
         playerClanMap.clear();
         kickNotices.clear();
+        pendingAllianceProposals.clear();
 
         Map<UUID, Clan> loaded = repository.loadAllClans();
         for (Clan clan : loaded.values()) {
@@ -533,6 +537,45 @@ public class ClanManager {
         }
     }
 
+    public boolean hasAllianceProposal(UUID fromClanId, UUID toClanId) {
+        if (fromClanId == null || toClanId == null) {
+            return false;
+        }
+        String key = fromClanId + ":" + toClanId;
+        Instant exp = pendingAllianceProposals.get(key);
+        if (exp == null) {
+            return false;
+        }
+        if (Instant.now().isAfter(exp)) {
+            pendingAllianceProposals.remove(key, exp);
+            return false;
+        }
+        return true;
+    }
+
+    public boolean proposeAlliance(UUID fromClanId, UUID toClanId) {
+        if (fromClanId == null || toClanId == null || fromClanId.equals(toClanId)) {
+            return false;
+        }
+        String key = fromClanId + ":" + toClanId;
+        Instant now = Instant.now();
+        Instant existing = pendingAllianceProposals.get(key);
+        if (existing != null && !now.isAfter(existing)) {
+            return false;
+        }
+        pendingAllianceProposals.put(key, now.plusSeconds(300));
+        return true;
+    }
+
+    public boolean consumeAllianceProposal(UUID fromClanId, UUID toClanId) {
+        if (fromClanId == null || toClanId == null) {
+            return false;
+        }
+        String key = fromClanId + ":" + toClanId;
+        Instant exp = pendingAllianceProposals.remove(key);
+        return exp != null && !Instant.now().isAfter(exp);
+    }
+
     private void sendToClanTab(Player target, String coloredMessage) {
         if (plugin.getEclypseCoreChatHook() != null) {
             plugin.getEclypseCoreChatHook().sendClanMessage(target, coloredMessage);
@@ -552,6 +595,7 @@ public class ClanManager {
             if (c < 0x20
                     || c == 0x7F
                     || c == '\u00A7'
+                    || (c >= '\uE600' && c <= '\uE77F')
                     || c == '\u2028'
                     || c == '\u2029'
                     || Character.isISOControl(c)

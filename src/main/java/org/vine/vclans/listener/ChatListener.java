@@ -20,6 +20,15 @@ public class ChatListener implements Listener {
         this.plugin = plugin;
     }
 
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void sanitizeBadgeWireCharacters(AsyncPlayerChatEvent event) {
+        String raw = event.getMessage();
+        String sanitized = stripBadgeWirePua(raw);
+        if (!sanitized.equals(raw)) {
+            event.setMessage(sanitized);
+        }
+    }
+
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         if (!plugin.getConfig().getBoolean("chat.enabled", true)) {
@@ -82,8 +91,27 @@ public class ChatListener implements Listener {
                 clanMsg = msg.substring(2).trim();
             }
 
-            plugin.getClanManager().sendClanChat(player, clanMsg);
+            plugin.getClanManager().sendClanChat(player, stripBadgeWirePua(clanMsg));
         }
+    }
+
+    private static String stripBadgeWirePua(String input) {
+        if (input == null || input.isEmpty()) {
+            return "";
+        }
+        StringBuilder sb = null;
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+            if (c >= '\uE600' && c <= '\uE77F') {
+                if (sb == null) {
+                    sb = new StringBuilder(input.length());
+                    sb.append(input, 0, i);
+                }
+            } else if (sb != null) {
+                sb.append(c);
+            }
+        }
+        return sb != null ? sb.toString() : input;
     }
 }
 

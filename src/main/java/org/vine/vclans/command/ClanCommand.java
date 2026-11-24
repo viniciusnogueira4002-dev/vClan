@@ -812,8 +812,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        if (args.length >= 3 && args[1].equalsIgnoreCase("convidar")) {
+        if (args.length >= 3 && (args[1].equalsIgnoreCase("convidar") || args[1].equalsIgnoreCase("aceitar"))) {
+            boolean isAcceptOnly = args[1].equalsIgnoreCase("aceitar");
             Clan target = plugin.getClanManager().getClanByTag(args[2]);
+            if (target == null) {
+                target = plugin.getClanManager().getClanByName(args[2]);
+            }
             if (target == null) {
                 player.sendMessage(ColorUtil.color(prefix + plugin.getMessages().getString("general.clan-not-found", "")));
                 return;
@@ -822,19 +826,51 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 player.sendMessage(ColorUtil.color(prefix + "&cVocê não pode formar aliança consigo mesmo."));
                 return;
             }
+            if (clan.isAlly(target.getId())) {
+                player.sendMessage(ColorUtil.color(prefix + "&cEste clã já é aliado do seu."));
+                return;
+            }
+            if (plugin.getWarManager().areAtWar(clan.getId(), target.getId())) {
+                player.sendMessage(ColorUtil.color(prefix + "&cNão é possível formar aliança enquanto estão em guerra!"));
+                return;
+            }
 
             int max = plugin.getConfig().getInt("alliances.settings.max-alliances-per-clan", 3);
             if (clan.getAllies().size() >= max) {
                 player.sendMessage(ColorUtil.color(prefix + plugin.getMessages().getString("alliance.max-allies", "")));
                 return;
             }
+            if (target.getAllies().size() >= max) {
+                player.sendMessage(ColorUtil.color(prefix + "&cO clã " + target.getName() + " já atingiu o limite máximo de alianças (" + max + ")."));
+                return;
+            }
+
+            boolean reciprocalReady = plugin.getClanManager().consumeAllianceProposal(target.getId(), clan.getId());
+            if (!reciprocalReady) {
+                if (isAcceptOnly) {
+                    player.sendMessage(ColorUtil.color(prefix + "&cNão há nenhuma proposta de aliança pendente de " + target.getName() + "."));
+                    return;
+                }
+                if (!plugin.getClanManager().proposeAlliance(clan.getId(), target.getId())) {
+                    player.sendMessage(ColorUtil.color(prefix + "&eJá existe uma proposta de aliança pendente para " + target.getName() + "."));
+                    return;
+                }
+                player.sendMessage(ColorUtil.color(prefix + "&#55FF55Proposta de aliança enviada para &e" + target.getName() + "&#55FF55! Aguardando aceite."));
+                target.broadcast(prefix + "&#55FF55O clã &e" + clan.getName() + " [" + clan.getTag()
+                        + "] &#55FF55propôs aliança! Use &f/clan alianca aceitar " + clan.getTag() + " &#55FF55ou aceite no menu.");
+                return;
+            }
 
             clan.getAllies().add(target.getId());
             target.getAllies().add(clan.getId());
 
+            final UUID clanId = clan.getId();
+            final UUID targetId = target.getId();
+            java.util.Set<UUID> alliesSnapshotA = new java.util.HashSet<>(clan.getAllies());
+            java.util.Set<UUID> alliesSnapshotB = new java.util.HashSet<>(target.getAllies());
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                plugin.getRepository().saveAllies(clan.getId(), clan.getAllies());
-                plugin.getRepository().saveAllies(target.getId(), target.getAllies());
+                plugin.getRepository().saveAllies(clanId, alliesSnapshotA);
+                plugin.getRepository().saveAllies(targetId, alliesSnapshotB);
             });
 
             String formed = plugin.getMessages().getString("alliance.formed", "")
@@ -1216,7 +1252,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 return Arrays.asList("clans", "sair", "status");
             }
             if (sub.equals("alianca")) {
-                return Arrays.asList("convidar", "remover");
+                return Arrays.asList("convidar", "aceitar", "remover");
             }
             if (sub.equals("guerra")) {
                 return Arrays.asList("top", "declarar", "aceitar", "render-se");
